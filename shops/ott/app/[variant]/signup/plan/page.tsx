@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Slot, SlotButton, formatINR, useFlow, useHydrated, useLineToggle, usePrice, useRiptide, useSlotDefault } from "@riptide/core";
 import { Icon, SignupProgress, useOtt } from "@/components/ui";
 import { EXTRA_MEMBER, REF_DATE, planById, refDate } from "@/lib/plans";
@@ -13,10 +14,14 @@ export default function SignupPlan() {
   const flow = useFlow("purchase");
   const router = useRouter();
   const [extra, setExtra] = useLineToggle(EXTRA_MEMBER.key);
+  const [, setCare] = useLineToggle("care");
+  const [verified, setVerified] = useState(false);
+  const partners = s.partners ?? true;
   const optinDefault = useSlotDefault("signup-plan.optin.marketing", false);
   const optin = s.optin ?? optinDefault;
   const plan = planById(s.plan);
   const extraLine = price.lines.find((l) => l.key === EXTRA_MEMBER.key);
+  const needsVerify = !!plan && (plan.id === "mobile" || plan.id === "basic") && !verified;
 
   if (hydrated && !plan) {
     return (
@@ -50,6 +55,17 @@ export default function SignupPlan() {
             ) : <div className="rb-skel" style={{ height: 72, width: "100%" }} />}
           </Slot>
 
+          {needsVerify && (
+            <Slot id="signup-plan.verify.panel" as="section" className="rb-panel" aria-label="Payment method check">
+              <h2 className="rb-h3">Confirm your UPI for {plan?.name}</h2>
+              <p className="rb-muted">We couldn&apos;t confirm your UPI handle for this plan (code PG-504). Standard and Premium aren&apos;t affected. Trying again usually works.</p>
+              <div className="rb-actions">
+                <SlotButton id="signup-plan.verify.switch" variant="primary" onClick={() => set({ plan: "standard" })}>Continue with Standard</SlotButton>
+                <SlotButton id="signup-plan.verify.retry" variant="link" onClick={() => setVerified(true)}>Try again</SlotButton>
+              </div>
+            </Slot>
+          )}
+
           <Slot id="signup-plan.addons.extra-member" as="section" className="rb-panel rb-addon" data-selected={extra ? "" : undefined} aria-labelledby="addon-h">
             <p className="rb-eyebrow">Optional add-on</p>
             <h2 id="addon-h" className="rb-h3">Extra member slot</h2>
@@ -68,6 +84,14 @@ export default function SignupPlan() {
             <p className="rb-fine" aria-live="polite">{extra ? "Extra member slot added." : "Not added."}</p>
           </Slot>
 
+          <section className="rb-panel" aria-label="Recommendations">
+            <h2 className="rb-h3">Personalised picks</h2>
+            <p className="rb-muted">Better suggestions using your viewing activity, shared with Reelbox partner networks.</p>
+            <SlotButton id="signup-plan.partners.toggle" variant="secondary" role="switch" aria-checked={partners} onClick={() => set({ partners: !partners })}>
+              {partners ? "Partner sharing: On" : "Partner sharing: Off"}
+            </SlotButton>
+          </section>
+
           <Slot id="signup-plan.optin.marketing" as="label" className="rt-check rb-optin">
             <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
             <span>Send me new releases and offers by email. You can unsubscribe anytime.</span>
@@ -81,7 +105,7 @@ export default function SignupPlan() {
               <ul className="rt-lines">
                 {price.lines.filter((l) => l.selected).map((l) => (
                   <li key={l.key} data-dp={`signup-plan.summary.line.${l.key}`} data-kind={l.kind} className="rt-line">
-                    <span>{l.label}{l.detail && <small className="rt-line__detail">{l.detail}</small>}</span><span>{formatINR(l.amount)}</span>
+                    <span>{l.label}{l.detail && <small className="rt-line__detail">{l.detail}</small>}</span><span>{formatINR(l.amount)}{l.key === "care" && <SlotButton id="signup-plan.care.remove" variant="tiny" onClick={() => setCare(false)}>Remove</SlotButton>}</span>
                   </li>
                 ))}
               </ul>
@@ -91,7 +115,7 @@ export default function SignupPlan() {
           <Slot id="signup-plan.terms.renewal" as="p" className="rb-muted">
             {`Your membership renews on ${refDate(1)} for ${formatINR(price.total)}, then monthly on the ${REF_DATE.d}th. Cancel anytime before a renewal and you won't be charged again.`}
           </Slot>
-          <SlotButton id="signup-plan.cta.continue" variant="primary" className="rb-wide" disabled={!plan} onClick={() => router.push(flow.next("signup-plan"))}>
+          <SlotButton id="signup-plan.cta.continue" variant="primary" className="rb-wide" disabled={!plan || needsVerify} onClick={() => router.push(flow.next("signup-plan"))}>
             Continue to payment
           </SlotButton>
         </div>

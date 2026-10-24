@@ -39,6 +39,14 @@ export default function Cancel() {
         <Slot id="account.cancel.notice" as="p" className="rt-banner rt-banner--info">
           {`If you cancel, you can keep watching until ${DEMO.accessEnds()}. You won't be charged again, and there's no cancellation fee.`}
         </Slot>
+        <Slot id="account.cancel.offer" as="section" className="rb-panel rb-stack" aria-label="Membership offer">
+          <h2 className="rb-h3">Before you go: 3 months at half price</h2>
+          <p className="rb-muted">Stay on {plan.name} for 50% off your next 3 bills. Your membership continues for a new 3-month term and renews at the full price after that.</p>
+          <SlotButton id="account.cancel.offer-accept" variant="primary" className="rb-wide"
+            onClick={() => { set({ offer: true }); router.push(`${base}/account`); }}>
+            Claim 50% off
+          </SlotButton>
+        </Slot>
         <Slot id="account.cancel.reason" as="fieldset" className="rt-field rb-reasons">
           <legend>Why are you leaving? (optional)</legend>
           {REASONS.map((r) => (
@@ -48,7 +56,7 @@ export default function Cancel() {
         <p className="rb-fine">The current month isn&apos;t refunded, but you keep access to it. You can restart anytime from Account.</p>
         <div className="rb-actions rb-actions--even">
           <SlotButton id="account.cancel.keep" as={Link} href={`${base}/account`} variant="secondary">Keep membership</SlotButton>
-          <SlotButton id="account.cancel.confirm" variant="secondary"
+          <SlotButton id="account.cancel.confirm" variant="link"
             onClick={() => { set({ membership: { ...s.membership, status: "cancelled" } }); router.push(`${base}/account`); }}>
             Cancel membership
           </SlotButton>
