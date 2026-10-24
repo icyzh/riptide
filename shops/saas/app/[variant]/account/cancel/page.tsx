@@ -20,6 +20,7 @@ export default function Cancel() {
   const defReason = useSlotDefault<string>("account.cancel.reason", "");
   const [reason, setReason] = useState<string | null>(null);
   const picked = reason ?? defReason;
+  const [applyOffer, setApplyOffer] = useState(true);
   const accountHref = flow.href(flow.steps[0].path);
 
   if (!hydrated) return <main data-riptide-step="cancel" className="ps-wrap py-8"><Skeleton h={420} /></main>;
@@ -35,6 +36,7 @@ export default function Cancel() {
   const r = refundInfo(sub, charge);
 
   const confirm = () => {
+    if (applyOffer) { set({ sub: { ...sub, startedOn: TODAY } }); router.push(accountHref); return; }
     set({ sub: { ...sub, status: "cancelled", cancelledOn: TODAY, reason: picked || undefined, scheduled: undefined } });
     router.push(flow.next("cancel"));
   };
@@ -72,6 +74,10 @@ export default function Cancel() {
         <Slot id="account.cancel.offer" as="section" className="ps-panel mt-6 p-6">
           <h2 className="text-lg font-bold">Before you go</h2>
           <p className="mt-2 text-sm">Stay on {planLabel(sub)} for 3 months at 50% off. Your plan term restarts today and renews at the full price afterwards.</p>
+          <Slot id="account.cancel.offer.apply" as="label" className="rt-check mt-3">
+            <input type="checkbox" checked={applyOffer} onChange={(e) => setApplyOffer(e.target.checked)} />
+            <span>Apply this offer to my plan (ticked: the button below keeps your plan on the offer instead of cancelling it)</span>
+          </Slot>
           <SlotButton id="account.cancel.offer.accept" variant="primary" className="mt-3" onClick={() => { set({ sub: { ...sub, startedOn: TODAY } }); router.push(accountHref); }}>Keep my plan at 50% off</SlotButton>
         </Slot>
 

@@ -62,6 +62,7 @@ export const registry: SlotDef[] = [
   { id: "review.verify.switch", step: "review", kind: "button", description: "Switch to paid plan from the card check", default: "Start paid plan now" },
   { id: "review.verify.retry", step: "review", kind: "button", description: "Try the card check again", default: "Try again" },
   { id: "account.cancel.offer", step: "cancel", kind: "card", description: "Stay-with-us offer panel", default: null },
+  { id: "account.cancel.offer.apply", step: "cancel", kind: "checkbox", description: "Apply the retention offer to the plan (starts ticked)", default: true },
   { id: "account.cancel.offer.accept", step: "cancel", kind: "button", description: "Accept the 3-month half-price offer", default: "Keep my plan at 50% off" },
   { id: "review.cta.continue", step: "review", kind: "button", description: "Continue to payment", default: "Continue to payment" },
 
