@@ -1,6 +1,7 @@
 "use client";
 import type { ReactNode } from "react";
-import { Slot, SlotButton, formatINR, useHydrated, useLineToggle, usePrice, useRiptide } from "@riptide/core";
+import { Slot, formatINR, useHydrated, usePrice, useRiptide } from "@riptide/core";
+import { SlotButton, useLineToggle } from "@riptide/core";
 import { productById, unitPrice } from "@/data/catalog";
 import type { MarketState } from "@/shop.config";
 import { Skeleton } from "./Ui";
