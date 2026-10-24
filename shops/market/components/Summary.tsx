@@ -1,12 +1,17 @@
 "use client";
 import type { ReactNode } from "react";
-import { Slot, formatINR, useHydrated, usePrice, useRiptide } from "@riptide/core";
+import { Slot, SlotButton, formatINR, useHydrated, useLineToggle, usePrice, useRiptide } from "@riptide/core";
 import { productById, unitPrice } from "@/data/catalog";
 import type { MarketState } from "@/shop.config";
 import { Skeleton } from "./Ui";
 
 function Amount({ n }: { n: number }) {
   return <span data-neg={n < 0 ? "" : undefined} className="tabular-nums">{n === 0 ? "Free" : formatINR(n)}</span>;
+}
+
+function HandlingRemove() {
+  const [, setOn] = useLineToggle("handling");
+  return <SlotButton id="review.handling.remove" variant="ghost" className="ml-2 !min-h-0 !p-0 text-xs underline" onClick={() => setOn(false)}>Remove</SlotButton>;
 }
 
 /** Itemised price breakdown for cart / checkout / review. Every amount comes from usePrice(step). */
@@ -39,7 +44,7 @@ export function PriceSummary({ step, state, children, title = "Price details" }:
               <div data-dp={`${step}.summary.line.items`} className="cw-line"><span>Items ({qty})</span><span className="tabular-nums">{formatINR(subtotal)}</span></div>
             )}
             {others.map((l) => {
-              const inner = <><span>{l.label}{l.detail && <small>{l.detail}</small>}</span><Amount n={l.amount} /></>;
+              const inner = <><span>{l.label}{step === "review" && l.key === "handling" && <HandlingRemove />}{l.detail && <small>{l.detail}</small>}</span><Amount n={l.amount} /></>;
               const id = `${step}.fees.${l.key}`;
               return registryIds.has(id)
                 ? <Slot key={l.key} id={id} className="cw-line" data-kind={l.kind}>{inner}</Slot>

@@ -12,6 +12,7 @@ export type MarketState = {
   coupon?: string;
   address?: Address;
   optin?: boolean;
+  share?: boolean;
   pin?: string;
   membership?: Membership;
   selected?: Record<string, boolean>;
@@ -86,9 +87,11 @@ export const config: ShopConfig<MarketState> = {
       const c = evaluateCoupon(state.coupon, state.cart);
       if (c.ok) lines.push({ key: "coupon", label: `Coupon ${state.coupon}`, amount: -c.amount, kind: "discount", visibleFromStep: "cart", optional: false, selected: true });
     }
-    if (warranty) lines.push({ key: "warranty", label: "Extended warranty (1 year)", amount: warranty, kind: "addon", visibleFromStep: "cart", optional: true, selected: false, detail: `Covers ${covered} eligible item${covered > 1 ? "s" : ""}` });
+    if (warranty) lines.push({ key: "warranty", label: "Device protection plan (1 year)", amount: warranty, kind: "addon", visibleFromStep: "cart", optional: true, selected: true, detail: `Covers ${covered} eligible item${covered > 1 ? "s" : ""}` });
     lines.push(
       { key: "giftwrap", label: "Gift wrap", amount: FEES.giftwrap, kind: "addon", visibleFromStep: "cart", optional: true, selected: false, detail: "All items, with a printed note" },
+      { key: "priority", label: "Priority dispatch", amount: 49, kind: "addon", visibleFromStep: "checkout", optional: true, selected: true, detail: "Packed and handed to the courier first" },
+      { key: "handling", label: "Packaging & handling", amount: 39, kind: "fee", visibleFromStep: "review", optional: true, selected: true, detail: "Per order, incl. GST" },
       { key: "express", label: hasPlusBenefits(state) ? "Express delivery (free with Plus)" : "Express delivery", amount: hasPlusBenefits(state) ? 0 : FEES.express, kind: "addon", visibleFromStep: "checkout", optional: true, selected: false, detail: "Upgrade from standard, arrives in 2 days" },
       { key: "nextday", label: "Next-day delivery", amount: FEES.nextday, kind: "addon", visibleFromStep: "checkout", optional: true, selected: false, detail: "Upgrade from standard, arrives tomorrow" },
       { key: "plus", label: "Cartwheel Plus, 1 year", amount: FEES.plus, kind: "membership", visibleFromStep: "checkout", optional: true, selected: false, detail: "Renews yearly at ₹999 until you cancel" },

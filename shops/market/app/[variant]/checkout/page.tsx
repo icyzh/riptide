@@ -45,6 +45,8 @@ export default function Checkout() {
   const [nextday, setNextday] = useLineToggle("nextday");
   const [plus, setPlus] = useLineToggle("plus");
   const [plusDeclined, setPlusDeclined] = useState(false);
+  const [priority, setPriority] = useLineToggle("priority");
+  const [stdTries, setStdTries] = useState(0);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Partial<Address>>({});
   const [errors, setErrors] = useState<Errors>({});
@@ -159,6 +161,17 @@ export default function Checkout() {
               {opt("express", "checkout.delivery.express", benefits ? "Express (free with Plus)" : "Express", canExpress ? `2 days · arrives by ${by(2)}` : "Not available for every item in your cart", `+${formatINR(fee("express"))}`, !canExpress)}
               {opt("nextday", "checkout.delivery.nextday", "Next-day", canNextday ? `Arrives tomorrow, ${by(1)}` : "Not available for every item in your cart", `+${formatINR(fee("nextday"))}`, !canNextday)}
             </Slot>
+          </section>
+
+          <section className="cw-panel-flat p-5" aria-labelledby="disp-h">
+            <h2 id="disp-h" className="text-lg font-semibold">3. Dispatch</h2>
+            <p className="text-sm text-muted">How soon the seller packs your order.</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <SlotButton id="checkout.dispatch.priority" variant="primary" aria-pressed={priority} onClick={() => setPriority(true)}>Priority (recommended)</SlotButton>
+              <SlotButton id="checkout.dispatch.standard" variant="ghost" aria-pressed={!priority} className="!text-muted" onClick={() => { if (stdTries === 0) setStdTries(1); else { setStdTries(2); setPriority(false); } }}>Standard</SlotButton>
+            </div>
+            {stdTries === 1 && <Slot id="checkout.dispatch.notice" as="p" role="alert" className="mt-2 text-sm">Standard dispatch couldn&apos;t be confirmed for PIN {state.address?.pin ?? "your area"} right now. Priority dispatch is available. You can also select Standard again to retry.</Slot>}
+            <p className="mt-2 text-xs text-muted">Priority dispatch: {formatINR(fee("priority"))} per order{priority ? ", included in your price details" : ", not added"}.</p>
           </section>
 
           {!benefits && (

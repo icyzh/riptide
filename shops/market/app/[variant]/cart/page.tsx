@@ -74,7 +74,7 @@ export default function Cart() {
               {warrantyLine && (
                 <Slot id="cart.addons.warranty" as="label" className="rt-check">
                   <input type="checkbox" checked={warranty} onChange={(e) => setWarranty(e.target.checked)} />
-                  <span><strong className="font-semibold">Extended warranty, 1 extra year (+{formatINR(warrantyLine.amount)})</strong>
+                  <span><strong className="font-semibold">Device protection plan, 1 year (+{formatINR(warrantyLine.amount)})</strong>
                     <span className="block text-sm text-muted">{warrantyLine.detail}. Covers manufacturing defects after the brand warranty ends. Refundable within 30 days.</span></span>
                 </Slot>
               )}

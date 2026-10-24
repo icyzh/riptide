@@ -18,6 +18,7 @@ export default function Review() {
   const [nextday] = useLineToggle("nextday");
   const optinDefault = useSlotDefault<boolean>("review.optin.marketing", false);
   const optin = state.optin ?? optinDefault;
+  const share = state.share ?? true;
 
   if (!hydrated) return <main data-riptide-step="review" className="cw-wrap pt-6" aria-busy><Skeleton className="h-6 w-80" /><div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]"><Skeleton className="h-96" /><Skeleton className="h-72" /></div></main>;
   if (!state.cart.length || !state.address) {
@@ -79,6 +80,10 @@ export default function Review() {
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
           <PriceSummary step="review" state={state} title="Order summary">
+            <Slot id="review.optin.partners" as="label" className="rt-check mt-5 text-sm">
+              <input type="checkbox" role="switch" checked={share} onChange={(e) => set({ share: e.target.checked })} />
+              <span>Personalised offers from Cartwheel partners<small className="block text-xs text-muted">Your order details and contact number are shared with partner brands.</small></span>
+            </Slot>
             <Slot id="review.optin.marketing" as="label" className="rt-check mt-5 text-sm">
               <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
               <span>Send me offers and updates by email</span>
