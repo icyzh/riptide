@@ -14,8 +14,10 @@ export default function Review() {
   const hydrated = useHydrated();
   const price = usePrice("review");
   const [storage, setStorage] = useLineToggle("storage");
+  const [care, setCare] = useLineToggle("care");
   const optDefault = useSlotDefault<boolean>("review.optin.marketing", false);
   const optin = s.optin ?? optDefault;
+  const tries = s.verifyTries ?? 0;
 
   if (!hydrated) return <main data-riptide-step="review" className="ps-wrap py-8"><Steps current="review" /><Skeleton h={420} className="mt-8" /></main>;
   if (!s.plan || !s.term) return <main data-riptide-step="review" className="ps-wrap py-8"><Steps current="review" /><div className="mt-8"><NoPlan /></div></main>;
@@ -72,17 +74,54 @@ export default function Review() {
             )}
           </Slot>
 
+          {trial ? (
+            <Slot id="review.verify.card" as="section" className="ps-panel p-6">
+              <p className="ps-eyebrow">Trial set-up</p>
+              <h2 className="mt-2 text-xl font-bold">Verify your card (₹0 hold)</h2>
+              {s.verified ? (
+                <p className="mt-3 text-sm">Card verified. You can continue to payment.</p>
+              ) : tries === 0 ? (
+                <div className="mt-3">
+                  <p className="text-sm text-muted">We place a ₹0 hold to confirm your card works before the trial starts.</p>
+                  <SlotButton id="review.verify.start" variant="secondary" className="mt-3" onClick={() => set({ verifyTries: 1 })}>Verify card</SlotButton>
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <p className="text-sm">We couldn&apos;t verify your card for the trial (code PG-504, gateway timeout). Paid plans don&apos;t need this check, and you can try again.</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <SlotButton id="review.verify.switch" variant="primary" onClick={() => set({ mode: "buy", verifyTries: 0 })}>Start paid plan now</SlotButton>
+                    <SlotButton id="review.verify.retry" variant="link" onClick={() => set({ verified: true })}>Try again</SlotButton>
+                  </div>
+                </div>
+              )}
+            </Slot>
+          ) : (
+            <section className="ps-panel p-6">
+              <h2 className="text-lg font-bold">Plan continuity</h2>
+              <p className="mt-1 text-sm text-muted">Priority care keeps your plan settings, licences and support queue position uninterrupted.</p>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <SlotButton id="review.care.toggle" variant={care ? "primary" : "secondary"} aria-pressed={care} onClick={() => setCare(!care)}>{care ? "✓ Continuity on" : "Continuity off"}</SlotButton>
+                {care ? <Slot id="review.care.remove" as="button" type="button" className="text-xs text-muted underline" onClick={() => setCare(false)}>Remove</Slot> : null}
+              </div>
+              <p className="mt-2 text-xs text-muted">Price is shown in your order summary.</p>
+            </section>
+          )}
+
           <section className="ps-panel p-6">
             <Slot id="review.optin.marketing" as="label" className="rt-check">
               <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
-              <span>Send me tutorials, product news and offers by email. You can unsubscribe at any time.</span>
+              <span>Share my usage and email with Prism partner studios for tailored tutorials and offers. You can opt out at any time.</span>
             </Slot>
           </section>
         </div>
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
           <Summary step="review">
-            <Slot id="review.cta.continue" as={Link} href={flow.next("review")} className="rt-btn mt-2 w-full" variant="primary">Continue to payment</Slot>
+            {trial && !s.verified ? (
+              <p className="text-sm text-muted">Verify your card to continue.</p>
+            ) : (
+              <Slot id="review.cta.continue" as={Link} href={flow.next("review")} className="rt-btn mt-2 w-full" variant="primary">Continue to payment</Slot>
+            )}
             <p className="text-xs text-muted">You&apos;ll choose UPI, card, netbanking or a wallet on the next page.</p>
           </Summary>
         </div>

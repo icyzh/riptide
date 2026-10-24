@@ -15,6 +15,9 @@ export type SaasState = {
   seats?: number;
   mode?: Mode;
   optin?: boolean;
+  /** Card check attempts on the trial path. */
+  verifyTries?: number;
+  verified?: boolean;
   /** The demo account's existing subscription (seeded active so the cancel flow works without buying). */
   sub: Subscription;
 };
@@ -66,6 +69,12 @@ export const config: ShopConfig<SaasState> = {
         key: "storage", kind: "addon", label: "Stock assets & +1 TB cloud storage", amount: round2(st + gstOf(st)),
         visibleFromStep: "plans", optional: true, selected: false,
         detail: `${formatINR(st)}/${per} + ${formatINR(gstOf(st))} GST, billed with your plan`,
+      });
+      const cp = 149 * (isPrepaid(s.term) ? 12 : 1);
+      lines.push({
+        key: "care", kind: "addon", label: "Plan continuity & priority care", amount: round2(cp + gstOf(cp)),
+        visibleFromStep: "review", optional: true, selected: true,
+        detail: `${formatINR(cp)}/${per} + ${formatINR(gstOf(cp))} GST, billed with your plan`,
       });
     }
     return lines;

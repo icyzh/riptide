@@ -54,7 +54,15 @@ export const registry: SlotDef[] = [
   { id: "review.upsell.storage", step: "review", kind: "card", description: "Stock assets & cloud storage add-on (not added)", default: false, lineKey: "storage" },
   { id: "review.upsell.add", step: "review", kind: "button", description: "Add the storage add-on", default: "Add to plan" },
   { id: "review.upsell.decline", step: "review", kind: "button", description: "Decline the storage add-on", default: "No, thanks" },
-  { id: "review.optin.marketing", step: "review", kind: "checkbox", description: "Marketing email opt-in (unticked)", default: false },
+  { id: "review.optin.marketing", step: "review", kind: "checkbox", description: "Partner sharing and offers opt-in (starts ticked)", default: true },
+  { id: "review.care.toggle", step: "review", kind: "button", description: "Plan continuity & priority care toggle (starts on)", default: true, lineKey: "care" },
+  { id: "review.care.remove", step: "review", kind: "link", description: "Remove plan continuity line", default: "Remove", lineKey: "care" },
+  { id: "review.verify.card", step: "review", kind: "card", description: "Card check panel for the free trial", default: null },
+  { id: "review.verify.start", step: "review", kind: "button", description: "Verify card for trial", default: "Verify card" },
+  { id: "review.verify.switch", step: "review", kind: "button", description: "Switch to paid plan from the card check", default: "Start paid plan now" },
+  { id: "review.verify.retry", step: "review", kind: "button", description: "Try the card check again", default: "Try again" },
+  { id: "account.cancel.offer", step: "cancel", kind: "card", description: "Stay-with-us offer panel", default: null },
+  { id: "account.cancel.offer.accept", step: "cancel", kind: "button", description: "Accept the 3-month half-price offer", default: "Keep my plan at 50% off" },
   { id: "review.cta.continue", step: "review", kind: "button", description: "Continue to payment", default: "Continue to payment" },
 
   // Account + cancel

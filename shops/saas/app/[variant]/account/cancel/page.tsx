@@ -69,6 +69,12 @@ export default function Cancel() {
           </div>
         </Slot>
 
+        <Slot id="account.cancel.offer" as="section" className="ps-panel mt-6 p-6">
+          <h2 className="text-lg font-bold">Before you go</h2>
+          <p className="mt-2 text-sm">Stay on {planLabel(sub)} for 3 months at 50% off. Your plan term restarts today and renews at the full price afterwards.</p>
+          <SlotButton id="account.cancel.offer.accept" variant="primary" className="mt-3" onClick={() => { set({ sub: { ...sub, startedOn: TODAY } }); router.push(accountHref); }}>Keep my plan at 50% off</SlotButton>
+        </Slot>
+
         <Slot id="account.cancel.actions" className="mt-6 grid gap-3 sm:grid-cols-2">
           <SlotButton id="account.cancel.keep" as={Link} href={accountHref} variant="secondary">Keep plan</SlotButton>
           <SlotButton id="account.cancel.confirm" variant="secondary" onClick={confirm}>Cancel plan</SlotButton>
