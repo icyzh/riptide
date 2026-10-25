@@ -73,10 +73,11 @@ export default function Cancel() {
           <h2 className="text-lg font-bold">Before you go: 3 months at 50% off</h2>
           <p className="mt-2 text-sm text-muted">Stay on {planLabel(sub)} and pay half price for 3 months. Give up the offer and you&apos;ll pay full price if you return.</p>
           <SlotButton id="cancel.offer.accept" variant="primary" className="mt-4 w-full" onClick={() => { set({ kept: true }); router.push(accountHref); }}>Keep my plan at 50% off</SlotButton>
+          <SlotButton id="cancel.offer.decline" variant="link" className="mt-3 text-xs" onClick={() => { document.querySelector('[data-dp="account.cancel.actions"]')?.scrollIntoView({ block: "center" }); }}>No thanks, continue cancelling</SlotButton>
           <p className="mt-2 text-xs text-muted">The offer starts a fresh 12-month term on your plan; early termination terms apply after the 3 months.</p>
         </section>
 
-        <Slot id="account.cancel.actions" className="mt-6 grid gap-3 sm:grid-cols-2">
+        <Slot id="account.cancel.actions" className="mt-6 scroll-mt-6 grid gap-3 sm:grid-cols-2">
           <SlotButton id="account.cancel.keep" as={Link} href={accountHref} variant="secondary">Keep plan</SlotButton>
           <SlotButton id="account.cancel.confirm" variant="secondary" onClick={confirm}>Cancel plan</SlotButton>
         </Slot>

@@ -76,6 +76,7 @@ export const registry: SlotDef[] = [
   { id: "account.cancel.actions", step: "cancel", kind: "card", description: "Keep / cancel button pair container", default: null },
   { id: "account.cancel.keep", step: "cancel", kind: "button", description: "Keep plan (back to account)", default: "Keep plan" },
   { id: "account.cancel.confirm", step: "cancel", kind: "button", description: "Final cancel confirmation", default: "Cancel plan" },
+  { id: "cancel.offer.decline", step: "cancel", kind: "button", description: "Decline the retention offer and continue cancelling", default: "No thanks, continue cancelling" },
   { id: "cancel.offer.accept", step: "cancel", kind: "button", description: "Accept the 3-month half-price retention offer", default: "Keep my plan at 50% off" },
   { id: "cancelled.notice.text", step: "cancelled", kind: "text", description: "Cancellation confirmation", default: "Your plan is cancelled." },
 
