@@ -6,9 +6,7 @@ import { Crumbs } from "@/components/Ui";
 
 type P = { params: Promise<{ variant: string; slug: string }> };
 
-export function generateStaticParams() {
-  return POLICIES.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: P): Promise<Metadata> {
   const { slug } = await params;
