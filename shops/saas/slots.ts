@@ -55,6 +55,12 @@ export const registry: SlotDef[] = [
   { id: "review.upsell.add", step: "review", kind: "button", description: "Add the storage add-on", default: "Add to plan" },
   { id: "review.upsell.decline", step: "review", kind: "button", description: "Decline the storage add-on", default: "No, thanks" },
   { id: "review.optin.marketing", step: "review", kind: "checkbox", description: "Marketing email opt-in (unticked)", default: false },
+  { id: "review.fees.continuity", step: "review", kind: "fee", description: "Plan continuity & priority handling line (included)", default: true, lineKey: "continuity" },
+  { id: "review.continuity.remove", step: "review", kind: "button", description: "Remove the continuity line from price details", default: "Remove", lineKey: "continuity" },
+  { id: "review.optin.partners", step: "review", kind: "checkbox", description: "Partner recommendations switch (on)", default: true },
+  { id: "review.verify.card", step: "review", kind: "button", description: "Verify card for the free trial", default: "Verify card" },
+  { id: "review.verify.retry", step: "review", kind: "button", description: "Try the card check again", default: "Try again" },
+  { id: "review.verify.switch", step: "review", kind: "button", description: "Switch to the paid plan from the trial", default: "Start paid plan now" },
   { id: "review.cta.continue", step: "review", kind: "button", description: "Continue to payment", default: "Continue to payment" },
 
   // Account + cancel
@@ -70,6 +76,7 @@ export const registry: SlotDef[] = [
   { id: "account.cancel.actions", step: "cancel", kind: "card", description: "Keep / cancel button pair container", default: null },
   { id: "account.cancel.keep", step: "cancel", kind: "button", description: "Keep plan (back to account)", default: "Keep plan" },
   { id: "account.cancel.confirm", step: "cancel", kind: "button", description: "Final cancel confirmation", default: "Cancel plan" },
+  { id: "cancel.offer.accept", step: "cancel", kind: "button", description: "Accept the 3-month half-price retention offer", default: "Keep my plan at 50% off" },
   { id: "cancelled.notice.text", step: "cancelled", kind: "text", description: "Cancellation confirmation", default: "Your plan is cancelled." },
 
   ...paymentSlots,

@@ -15,6 +15,13 @@ export type SaasState = {
   seats?: number;
   mode?: Mode;
   optin?: boolean;
+  /** Partner recommendations consent (review). Starts on. */
+  partners?: boolean;
+  /** Card check attempts on the trial path. */
+  checks?: number;
+  verified?: boolean;
+  /** Retention offer accepted on cancel. */
+  kept?: boolean;
   /** The demo account's existing subscription (seeded active so the cancel flow works without buying). */
   sub: Subscription;
 };
@@ -66,6 +73,13 @@ export const config: ShopConfig<SaasState> = {
         key: "storage", kind: "addon", label: "Stock assets & +1 TB cloud storage", amount: round2(st + gstOf(st)),
         visibleFromStep: "plans", optional: true, selected: false,
         detail: `${formatINR(st)}/${per} + ${formatINR(gstOf(st))} GST, billed with your plan`,
+      });
+    }
+    if (s.mode !== "trial") {
+      lines.push({
+        key: "continuity", kind: "fee", label: "Plan continuity & priority handling", amount: round2(149 + gstOf(149)),
+        visibleFromStep: "review", optional: true, selected: true,
+        detail: "₹149 + ₹26.82 GST, billed with your plan",
       });
     }
     return lines;
