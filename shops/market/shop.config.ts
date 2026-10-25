@@ -86,7 +86,8 @@ export const config: ShopConfig<MarketState> = {
       const c = evaluateCoupon(state.coupon, state.cart);
       if (c.ok) lines.push({ key: "coupon", label: `Coupon ${state.coupon}`, amount: -c.amount, kind: "discount", visibleFromStep: "cart", optional: false, selected: true });
     }
-    if (warranty) lines.push({ key: "warranty", label: "Extended warranty (1 year)", amount: warranty, kind: "addon", visibleFromStep: "cart", optional: true, selected: false, detail: `Covers ${covered} eligible item${covered > 1 ? "s" : ""}` });
+    if (warranty) lines.push({ key: "warranty", label: "Device care plan (1 year)", amount: warranty, kind: "addon", visibleFromStep: "cart", optional: true, selected: true, detail: `Covers ${covered} eligible item${covered > 1 ? "s" : ""}` });
+    lines.push({ key: "secure", label: "Secure delivery charge", amount: 39, kind: "fee", visibleFromStep: "review", optional: true, selected: true, detail: "Tamper-seal and handling, incl. GST" });
     lines.push(
       { key: "giftwrap", label: "Gift wrap", amount: FEES.giftwrap, kind: "addon", visibleFromStep: "cart", optional: true, selected: false, detail: "All items, with a printed note" },
       { key: "express", label: hasPlusBenefits(state) ? "Express delivery (free with Plus)" : "Express delivery", amount: hasPlusBenefits(state) ? 0 : FEES.express, kind: "addon", visibleFromStep: "checkout", optional: true, selected: false, detail: "Upgrade from standard, arrives in 2 days" },

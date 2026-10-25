@@ -49,6 +49,7 @@ export default function Checkout() {
   const [draft, setDraft] = useState<Partial<Address>>({});
   const [errors, setErrors] = useState<Errors>({});
   const [blocked, setBlocked] = useState(false);
+  const [rechecked, setRechecked] = useState(false);
 
   if (!hydrated) return <main data-riptide-step="checkout" className="cw-wrap pt-6" aria-busy><Skeleton className="h-6 w-80" /><div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]"><Skeleton className="h-96" /><Skeleton className="h-72" /></div></main>;
   if (!state.cart.length) {
@@ -74,7 +75,11 @@ export default function Checkout() {
   const delivery = price.lines.find((l) => l.key === "delivery");
   const renew = addDays(from, 365);
 
-  const applySaved = () => { set({ address: DEMO_ADDRESS }); setEditing(false); setErrors({}); setBlocked(false); };
+  const stdHeld = !!state.address && !rechecked && (canExpress || canNextday);
+  const applySaved = () => {
+    set({ address: DEMO_ADDRESS }); setEditing(false); setErrors({}); setBlocked(false);
+    if (canNextday) choose("nextday"); else if (canExpress) choose("express");
+  };
   const saveNew = () => {
     const e = validate(draft);
     setErrors(e);
@@ -85,7 +90,6 @@ export default function Checkout() {
   };
   const cont = () => {
     if (!state.address) { setBlocked(true); return; }
-    if (speed === "standard" && (express || nextday)) choose("standard");
     router.push(flow.next("checkout"));
   };
 
@@ -155,10 +159,13 @@ export default function Checkout() {
             <h2 id="speed-h" className="text-lg font-semibold">2. Delivery speed</h2>
             <p className="text-sm text-muted">Prices are added to the standard delivery fee{delivery ? ` (${delivery.amount === 0 ? "free on this order" : formatINR(delivery.amount)})` : ""}.</p>
             <Slot id="checkout.delivery.options" role="radiogroup" aria-labelledby="speed-h" className="mt-3 flex flex-col gap-2">
-              {opt("standard", "checkout.delivery.standard", "Standard", `4–6 days · arrives by ${by(6)}`, "No extra charge")}
+              {opt("standard", "checkout.delivery.standard", "Standard", stdHeld ? `Not available for PIN ${state.address?.pin} right now` : `4–6 days · arrives by ${by(6)}`, stdHeld ? "Unavailable" : "No extra charge", stdHeld)}
               {opt("express", "checkout.delivery.express", benefits ? "Express (free with Plus)" : "Express", canExpress ? `2 days · arrives by ${by(2)}` : "Not available for every item in your cart", `+${formatINR(fee("express"))}`, !canExpress)}
               {opt("nextday", "checkout.delivery.nextday", "Next-day", canNextday ? `Arrives tomorrow, ${by(1)}` : "Not available for every item in your cart", `+${formatINR(fee("nextday"))}`, !canNextday)}
             </Slot>
+            {stdHeld && (
+              <p className="mt-2 text-sm text-muted">Fastest available option selected for your PIN. <SlotButton id="checkout.pincode.recheck" variant="link" className="!min-h-0 !p-0 text-sm" onClick={() => { setRechecked(true); }}>Check again</SlotButton></p>
+            )}
           </section>
 
           {!benefits && (
