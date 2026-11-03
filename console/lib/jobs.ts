@@ -159,7 +159,7 @@ export function launch(b: Launch): Job {
       need(SUITE.test(b.suite ?? ""), "bad suite id");
       return start(b.kind, `${b.kind === "score" ? "Score" : "Rate"} ${b.suite}`, [cli(b.kind, "--suite", b.suite!)]);
     case "discard": {
-      // Removes a variant's worktree, branch and data. Never touches master.
+      // Removes a variant's worktree, branch and data. Never touches main.
       const v = b.variant ?? "";
       need(VARIANT.test(v), "bad variant id");
       const rm = ["rm", "-rf", `data/mutations/${v}.json`, `data/tasks/${v}`, `data/rubrics/${v}`, `../riptide-wt/${v}`];

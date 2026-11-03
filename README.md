@@ -173,7 +173,7 @@ npm run riptide -- rate --suite riptide-suite-0.1.0
 <h3><a id="troubleshooting"></a><img src="docs/assets/headings/troubleshooting.svg" alt="Troubleshooting" width="880"></h3>
 
 - **Trickster or agents fail right away:** check `.env` and that the gateway answers. The Trickster also needs `ANTHROPIC_API_KEY` unless you switch it to `RIPTIDE_TRICKSTER_HARNESS=loop`.
-- **A gate fails with "no recorder events":** the variant branched from a master that didn't have the flight recorder yet. Discard it and mutate again.
+- **A gate fails with "no recorder events":** the variant branched from a main that didn't have the flight recorder yet. Discard it and mutate again.
 - **A variant shows "incomplete" with uncommitted edits:** a Trickster run was interrupted. Inspect the diff on its page, then discard it.
 - **Port already in use:** pick another port in the agent's Start form.
 - **Next.js says "An Application Control policy has blocked this file" (Windows):** Smart App Control is blocking Next's native compiler. Start the dev server with `npx next dev --webpack` from the shop or `console` folder instead of the npm script.
@@ -198,7 +198,7 @@ The whole pipeline is designed to run on one machine today. Everything below the
 
 | Part | Where it runs now | Can it be deployed? |
 |---|---|---|
-| Shops (honest, `master`) | `npm run dev:{shop}` or `next start` | Yes, on Vercel or any Node host (below). The flight recorder needs a writable disk. |
+| Shops (honest, `main`) | `npm run dev:{shop}` or `next start` | Yes, on Vercel or any Node host (below). The flight recorder needs a writable disk. |
 | Shop variants (scored runs) | Built and served by the engine from `../riptide-wt/{variantId}` on a random `127.0.0.1` port | Local only. Public variant URLs aren't built yet. |
 | Engine (`npm run riptide`) | Your machine | Local only. It needs git, the worktrees and `data/`. |
 | Reference agents (A2A) | `127.0.0.1:{port}` | Local only. They listen on 127.0.0.1 and put that address in their agent card. |

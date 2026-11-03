@@ -48,10 +48,10 @@ export async function buildSuite(opts: { suiteId: string; variantIds: string[]; 
     const rec = readJson(p.mutation(v), MutationRecord);
     add({ shop: rec.shop, variantId: v, branch: `variant/${rec.shop}/${v}`, commit: rec.variantCommit, tricksterVersion: rec.tricksterVersion, taskIds: [] }, rec, tasksOf(v));
   }
-  const master = git(["rev-parse", "master"]);
+  const main = git(["rev-parse", "main"]);
   for (const shop of opts.controls) {
     const v = `control-${shop}`;
-    add({ shop, variantId: v, branch: "master", commit: master, tricksterVersion: null, taskIds: [] }, null, tasksOf(v));
+    add({ shop, variantId: v, branch: "main", commit: main, tricksterVersion: null, taskIds: [] }, null, tasksOf(v));
   }
   if (!items.length) throw new Error("suite would be empty");
 

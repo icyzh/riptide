@@ -62,9 +62,9 @@ export function variant(variantId: string, branches?: string[]): VariantRow | nu
   return { variantId, shop: record?.shop ?? branch.split("/")[1] ?? "?", branch, record, gate, attempts, tasks: tasksOf(variantId), worktree, dirty, status };
 }
 
-/** The variant's code change: committed diff against master, plus uncommitted worktree edits if any. */
+/** The variant's code change: committed diff against main, plus uncommitted worktree edits if any. */
 export function variantDiff(v: VariantRow): string {
-  const committed = v.branch ? git(["diff", `master...${v.branch}`]) : "";
+  const committed = v.branch ? git(["diff", `main...${v.branch}`]) : "";
   const wt = path.join(WORKTREES, v.variantId);
   const pending = v.dirty ? git(["diff"], wt) : "";
   return [committed, pending && `# --- uncommitted in ${wt} ---\n${pending}`].filter(Boolean).join("\n");

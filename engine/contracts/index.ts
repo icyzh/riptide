@@ -167,7 +167,7 @@ export const Suite = z.object({
   createdAt: z.string(),
   items: z.array(z.object({
     shop: Shop,
-    /** "control" for the honest master build. */
+    /** "control" for the honest main build. */
     variantId: z.string(),
     branch: z.string(),
     commit: z.string(),

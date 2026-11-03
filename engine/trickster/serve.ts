@@ -26,8 +26,8 @@ export function ensureWorktree(name: string, ref: string, newBranch?: string): s
   return dir;
 }
 
-/** The honest build: a detached worktree on master, so the main checkout is never built into. */
-export const controlWorktree = () => ensureWorktree("control", git(["rev-parse", "master"]));
+/** The honest build: a detached worktree on main, so the main checkout is never built into. */
+export const controlWorktree = () => ensureWorktree("control", git(["rev-parse", "main"]));
 
 export function freePort(): Promise<number> {
   return new Promise((resolve, reject) => {

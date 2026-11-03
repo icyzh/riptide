@@ -31,8 +31,8 @@ const ALLOWED_RIPTIDE = /@riptide\/core(\/server)?|data-riptide-step|riptide:|\b
 const chromePath = process.env.PW_CHROMIUM ?? path.join(os.homedir(), ".cache/ms-playwright/chromium-1234/chrome-linux64/chrome");
 const runId = () => "r_" + Array.from({ length: 10 }, () => "abcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 36)]).join("");
 
-/** Changed files on the variant branch relative to its merge base with master. */
-export const changedFiles = (branch: string) => git(["diff", "--name-only", `master...${branch}`]).split("\n").filter(Boolean);
+/** Changed files on the variant branch relative to its merge base with main. */
+export const changedFiles = (branch: string) => git(["diff", "--name-only", `main...${branch}`]).split("\n").filter(Boolean);
 
 /**
  * The shop's `buy` walk (or its `cancel` walk: account → the confirm screen, never clicking confirm) on a served build.
@@ -109,7 +109,7 @@ export async function runGates(variantId: string, opts: { attempt?: number; skip
   add("scope", changed.length > 0 && outside.length === 0, outside.length ? `outside ${SCOPE(shop)}: ${outside.join(", ")}` : changed.length ? undefined : "no changes");
 
   // telltale: added lines only
-  const added = git(["diff", "-U0", `master...${branch}`]).split("\n").filter((l) => l.startsWith("+") && !l.startsWith("+++"));
+  const added = git(["diff", "-U0", `main...${branch}`]).split("\n").filter((l) => l.startsWith("+") && !l.startsWith("+++"));
   const hits = added.filter((l) => TELLTALE.test(l.replace(ALLOWED_RIPTIDE, "")));
   const badNames = changed.filter((f) => TELLTALE.test(f));
   add("telltale", !hits.length && !badNames.length, [...badNames.map((f) => `file name ${f}`), ...hits.map((l) => l.trim().slice(0, 160))].join(" | ") || undefined);

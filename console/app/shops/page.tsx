@@ -11,7 +11,7 @@ export default async function Shops() {
   const { shopBaseUrl } = getSettings();
 
   return (
-    <Page title="Shops" sub="Live previews of the local shop dev servers (honest master code and its manifest variants). Trickster variants are served by the engine on their own ports during runs.">
+    <Page title="Shops" sub="Live previews of the local shop dev servers (honest main code and its manifest variants). Trickster variants are served by the engine on their own ports during runs.">
       <div className="flex flex-wrap gap-2">
         {shops.map((s) => <Badge key={s.shop} tone={s.up ? "ok" : "muted"}>{s.brand} :{s.port} {s.up ? "up" : "down"}</Badge>)}
       </div>

@@ -115,7 +115,7 @@ export default async function VariantPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      <Card title="Code change vs master" actions={v.worktree && <span className="text-xs text-[var(--muted)]">worktree ../riptide-wt/{v.variantId}</span>}>
+      <Card title="Code change vs main" actions={v.worktree && <span className="text-xs text-[var(--muted)]">worktree ../riptide-wt/{v.variantId}</span>}>
         <Diff text={diff} />
       </Card>
 

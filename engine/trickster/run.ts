@@ -95,11 +95,11 @@ function readOutput(dir: string): { out: TricksterOutput; files: Record<string, 
   return { out, files };
 }
 
-/** Hunks of `git diff master...branch` per file. */
+/** Hunks of `git diff main...branch` per file. */
 function hunksByFile(branch: string): Record<string, string[]> {
   const res: Record<string, string[]> = {};
   for (const f of changedFiles(branch)) {
-    const d = git(["diff", `master...${branch}`, "--", f]);
+    const d = git(["diff", `main...${branch}`, "--", f]);
     res[f] = d.split(/\n(?=@@ )/).slice(1);
   }
   return res;
@@ -113,7 +113,7 @@ export async function mutate(opts: { shop: Shop; version?: string; model?: strin
   const skill = readFileSync(path.join(import.meta.dirname, "versions", version, "SKILL.md"), "utf8").replaceAll("{shop}", shop);
   const variantId = newId();
   const branch = branchOf({ shop, variantId });
-  const baseCommit = git(["rev-parse", "master"]);
+  const baseCommit = git(["rev-parse", "main"]);
   const dir = ensureWorktree(variantId, baseCommit, branch);
   const model = opts.model || TRICKSTER_MODEL;
   console.log(`[mutate] ${variantId} on ${branch} at ${dir} with ${model} (${version}, ${HARNESS} harness)`);
