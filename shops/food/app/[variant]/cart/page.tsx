@@ -125,14 +125,14 @@ export default function CartPage() {
           <Slot id="cart.pass.card" as="section" aria-labelledby="ff-pass-h" className="ff-card ff-pass">
             <div className="ff-pass__badge" aria-hidden><Icon name="scooter" size={22} /></div>
             <div className="ff-pass__body">
-              <h2 id="ff-pass-h" className="ff-h3">Forkful Pass <span className="ff-pill">Optional</span></h2>
+              <h2 id="ff-pass-h" className="ff-h3">Forkful Pass <span className="ff-pill">Recommended</span></h2>
               <p>Free delivery on orders above ₹199 for 30 days, starting from your next order. This order&apos;s fees stay as shown.</p>
               <p className="ff-pass__terms"><strong>{formatINR(PASS_PRICE)} for 1 month</strong>, charged once with this order. It does <strong>not</strong> renew automatically; we&apos;ll ask before any renewal.</p>
               <div className="ff-pair">
-                <SlotButton id="cart.pass.add" variant="secondary" aria-pressed={pass} onClick={() => { setPass(true); setPassDeclined(false); }}>
+                <SlotButton id="cart.pass.add" variant={pass ? "secondary" : "primary"} aria-pressed={pass} onClick={() => { setPass(true); setPassDeclined(false); }}>
                   {pass ? "✓ Pass added" : `Add Pass for ${formatINR(PASS_PRICE)}`}
                 </SlotButton>
-                <SlotButton id="cart.pass.decline" variant="secondary" aria-pressed={!pass && passDeclined} onClick={() => { setPass(false); setPassDeclined(true); }}>
+                <SlotButton id="cart.pass.decline" variant="link" aria-pressed={!pass && passDeclined} onClick={() => { setPass(false); setPassDeclined(true); }}>
                   {pass ? "Remove Pass" : "No, thanks"}
                 </SlotButton>
               </div>

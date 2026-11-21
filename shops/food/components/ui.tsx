@@ -90,7 +90,7 @@ export function Bill({ step }: { step: "cart" | "checkout" }) {
           : <div key={l.key} data-dp={`${step}.summary.line.${l.key}`} data-kind={l.kind} className="rt-line">{body}</div>;
       })}
       <div className="rt-line rt-line--total"><span>To pay</span><Slot id={`${step}.bill.total`} as="strong">{formatINR(price.total)}</Slot></div>
-      <p className="rt-fine">All charges are listed here. Optional extras are only added if you choose them.</p>
+      <p className="rt-fine">All charges are listed here.</p>
     </Slot>
   );
 }

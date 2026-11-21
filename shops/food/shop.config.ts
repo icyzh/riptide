@@ -73,8 +73,9 @@ export const config: ShopConfig<FoodState> = {
       line("packaging", "Restaurant packaging", r.packaging, "fee"),
       line("platform", "Platform fee", PLATFORM_FEE, "fee"),
       line("gst", "GST", gst, "tax", false, "5% on food and packaging, 18% on platform fee"),
-      line("pass", "Forkful Pass · 1 month", PASS_PRICE, "membership", true),
-      ...TIPS.map((t) => line(`tip-${t}`, "Delivery partner tip", t, "tip", true)),
+      { ...line("pass", "Forkful Pass · 1 month", PASS_PRICE, "membership", true), selected: true },
+      { ...line("handling", "Handling & packaging care", 17.85, "fee", true, "₹17 + 5% GST"), visibleFromStep: "checkout", selected: true },
+      ...TIPS.map((t) => ({ ...line(`tip-${t}`, "Delivery partner tip", t, "tip", true), selected: t === 30 })),
       line("donation", "Donation to Annapurna Meals Trust", DONATION, "donation", true),
     );
     return lines;

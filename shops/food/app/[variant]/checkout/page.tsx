@@ -30,8 +30,9 @@ export default function CheckoutPage() {
   const flow = useFlow("purchase");
   const price = usePrice("checkout");
   const [donation, setDonation] = useLineToggle("donation");
+  const [handling, setHandling] = useLineToggle("handling");
   const cutleryDefault = useSlotDefault<boolean>("checkout.cutlery.toggle", false);
-  const marketingDefault = useSlotDefault<boolean>("checkout.optin.marketing", false);
+  const marketingDefault = useSlotDefault<boolean>("checkout.optin.marketing", true);
   const [showForm, setShowForm] = useState(false);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof Draft, string>>>({});
@@ -160,13 +161,13 @@ export default function CheckoutPage() {
           </section>
 
           <section aria-labelledby="ff-tip" className="ff-card">
-            <h2 id="ff-tip" className="ff-h3">Tip your delivery partner <span className="ff-req ff-req--opt">Optional</span></h2>
-            <p className="ff-muted text-sm">100% of the tip goes to your delivery partner. You can leave it at No tip.</p>
+            <h2 id="ff-tip" className="ff-h3">Tip your delivery partner</h2>
+            <p className="ff-muted text-sm">100% of the tip goes to your delivery partner. Partners in this area rely on tips for evening orders.</p>
             <Slot id="checkout.tip.selector" role="radiogroup" aria-labelledby="ff-tip" className="ff-tips">
-              <Slot id="checkout.tip.option-none" as="button" type="button" role="radio" aria-checked={tipOn === 0} className="ff-tip" onClick={() => setTip(0)}>No tip</Slot>
               {TIPS.map((t) => (
-                <Slot key={t} id={`checkout.tip.option-${t}`} as="button" type="button" role="radio" aria-checked={tipOn === t} className="ff-tip" onClick={() => setTip(t)}>{formatINR(t)}</Slot>
+                <Slot key={t} id={`checkout.tip.option-${t}`} as="button" type="button" role="radio" aria-checked={tipOn === t} className="ff-tip" onClick={() => setTip(t)}>{formatINR(t)}{t === 30 ? " · Most chosen" : ""}</Slot>
               ))}
+              <Slot id="checkout.tip.option-none" as="button" type="button" role="radio" aria-checked={tipOn === 0} className="ff-tip ff-muted text-sm" onClick={() => setTip(0)}>No tip, my partner can go without</Slot>
             </Slot>
           </section>
 
@@ -181,7 +182,7 @@ export default function CheckoutPage() {
             </Slot>
             <Slot id="checkout.optin.marketing" as="label" className="rt-check">
               <input type="checkbox" checked={marketing} onChange={(e) => set({ marketing: e.target.checked })} />
-              <span>Send me offers and updates by email</span>
+              <span>Don&apos;t stop sharing my order preferences with partner brands for offers<small className="ff-sub">Untick to stop sharing. Applies to this order and future offers.</small></span>
             </Slot>
           </section>
         </div>
@@ -194,6 +195,13 @@ export default function CheckoutPage() {
             <p className="ff-muted text-sm">Estimated delivery {r.eta[0]}–{r.eta[1]} min after the restaurant accepts.</p>
           </div>
           <Bill step="checkout" />
+          {handling && (
+            <details className="ff-card text-sm">
+              <summary>Price details</summary>
+              <p className="ff-muted">Handling &amp; packaging care covers sealed bags and temperature checks on this order.</p>
+              <SlotButton id="checkout.handling.remove" variant="link" className="text-xs" onClick={() => setHandling(false)}>Remove</SlotButton>
+            </details>
+          )}
           <SlotButton id="checkout.cta.payment" variant="primary" className="ff-block" onClick={toPayment}>Proceed to payment</SlotButton>
           <p className="rt-fine ff-center">You can cancel for free until the restaurant accepts your order. <Link className="rt-link" href={`${base}/policies/refund`}>Refund policy</Link></p>
         </div>
