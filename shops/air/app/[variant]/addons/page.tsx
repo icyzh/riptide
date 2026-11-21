@@ -24,7 +24,7 @@ export default function Addons() {
     <BookingShell step="addons">
       <header className="sk-pagehead">
         <h1 className="sk-h1">Add-ons</h1>
-        <p className="sk-muted">All optional and not added unless you choose them. Your fare already includes {FARES[st.fare ?? "saver"].cabin.toLowerCase()} and {FARES[st.fare ?? "saver"].checkin.toLowerCase()}.</p>
+        <p className="sk-muted">Review what is on your booking. Your fare already includes {FARES[st.fare ?? "saver"].cabin.toLowerCase()} and {FARES[st.fare ?? "saver"].checkin.toLowerCase()}.</p>
       </header>
       {(st.fare ?? "saver") === "saver" && <Upgrade />}
       <Slot id="addons.list.panel" as="div" className="sk-stack">
@@ -41,18 +41,20 @@ function Addon({ k, n, flights }: { k: AddonKey; n: number; flights: number }) {
   const [on, setOn] = useLineToggle(k);
   const a = ADDONS[k];
   const qty = k === "insurance" ? n : n * flights;
+  const cover = k === "insurance";
   return (
     <Slot id={`addons.${k}.card`} as="section" className={cn("sk-card sk-addon", on && "is-on")} aria-label={a.title}>
       <span className="sk-addon__icon"><Icon d={ICON[k]} size={24} /></span>
       <div className="sk-addon__body">
-        <h2 className="sk-h3">{a.title}</h2>
+        <h2 className="sk-h3">{a.title}{cover && <> <small className="sk-eyebrow">Recommended · chosen by 8 in 10 travellers</small></>}</h2>
         <p className="sk-muted">{a.body}</p>
+        {cover && <Slot id="addons.insurance.timer" as="p" className="sk-fine">Cover price held for 09:59. Delays and disruptions on this route are up this week.</Slot>}
         <p className="sk-addon__price"><strong>{formatINR(a.price)}</strong> {a.unit} · {formatINR(a.price * qty)} for this booking</p>
         <p className="sk-addon__state" aria-live="polite">{on ? "Added to your booking" : "Not added"}</p>
       </div>
       <div className="sk-addon__btns">
-        <SlotButton id={`addons.${k}.add`} variant="secondary" aria-pressed={on} onClick={() => setOn(true)}>{ADD_TEXT[k]}</SlotButton>
-        <SlotButton id={`addons.${k}.decline`} variant="secondary" aria-pressed={!on} onClick={() => setOn(false)}>No, thanks</SlotButton>
+        <SlotButton id={`addons.${k}.add`} variant={cover ? "primary" : "secondary"} aria-pressed={on} onClick={() => setOn(true)}>{cover && on ? "Trip cover added" : ADD_TEXT[k]}</SlotButton>
+        <SlotButton id={`addons.${k}.decline`} variant={cover ? "tiny" : "secondary"} aria-pressed={!on} onClick={() => setOn(false)}>{cover ? "No, I'll take the risk" : "No, thanks"}</SlotButton>
       </div>
     </Slot>
   );

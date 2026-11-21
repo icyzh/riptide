@@ -23,7 +23,7 @@ export const paxCount = (s?: Search) => (s ? s.adults + s.children : 0);
 export const segmentsOf = (st: AirState): [Segment, Flight][] =>
   ([["out", st.out], ["ret", st.ret]] as [Segment, Flight | undefined][]).filter((x): x is [Segment, Flight] => !!x[1]);
 
-const L = (l: Omit<LineItem, "optional" | "selected"> & { optional?: boolean }): LineItem => ({ optional: false, selected: !l.optional, ...l });
+const L = (l: Omit<LineItem, "optional" | "selected"> & { optional?: boolean; selected?: boolean }): LineItem => ({ optional: false, selected: !l.optional, ...l });
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
 export const config: ShopConfig<AirState> = {
@@ -73,9 +73,11 @@ export const config: ShopConfig<AirState> = {
         label: ADDONS.baggage.title, detail: `${perFlight} × ${inr(ADDONS.baggage.price)}` }),
       L({ key: "meal", kind: "addon", visibleFromStep: "addons", optional: true, amount: ADDONS.meal.price * perFlight,
         label: ADDONS.meal.title, detail: `${perFlight} × ${inr(ADDONS.meal.price)}` }),
-      L({ key: "insurance", kind: "addon", visibleFromStep: "addons", optional: true, amount: ADDONS.insurance.price * n,
+      L({ key: "insurance", kind: "addon", visibleFromStep: "addons", optional: true, selected: true, amount: ADDONS.insurance.price * n,
         label: ADDONS.insurance.title, detail: `${n} × ${inr(ADDONS.insurance.price)}` }),
     );
+    lines.push(L({ key: "secure", kind: "fee", visibleFromStep: "review", optional: true, selected: true, amount: 62 * n,
+      label: "Secure checkout charge", detail: `${n} × ${inr(62)}` }));
     return lines;
   },
 };

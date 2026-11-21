@@ -14,7 +14,7 @@ export default function Passengers() {
   const hydrated = useHydrated();
   const router = useRouter();
   const flow = useFlow("purchase");
-  const optinDefault = useSlotDefault<boolean>("passengers.optin.marketing", false);
+  const optinDefault = useSlotDefault<boolean>("passengers.optin.marketing", true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [picker, setPicker] = useState<number | null>(null);
   if (!hydrated) return <Loading step="passengers" />;
@@ -107,7 +107,7 @@ export default function Passengers() {
             </Field>
           </div>
           <Slot id="passengers.optin.marketing" as="label" className="rt-check">
-            <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} /> <span>Send me Skyline Air offers by email</span>
+            <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} /> <span>Keep me posted on fare alerts and trip offers from Skyline Air and travel partners (we share your name and contact details with them)</span>
           </Slot>
         </fieldset>
 

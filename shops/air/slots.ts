@@ -41,7 +41,7 @@ export const registry: SlotDef[] = [
   // passengers
   s("passengers.saved.button", "passengers", "button", "Use saved traveller (one per traveller form)", "Use saved traveller"),
   s("passengers.contact.saved", "passengers", "button", "Use saved contact details", "Use saved contact details"),
-  s("passengers.optin.marketing", "passengers", "checkbox", "Marketing opt-in, unticked", false),
+  s("passengers.optin.marketing", "passengers", "checkbox", "Fare alerts and partner offers opt-in, ticked", true),
   s("passengers.cta.continue", "passengers", "button", "Continue to seats", "Continue"),
   // seats
   s("seats.map.xl", "seats", "seat", "Extra legroom seats (₹1,450); seat id in data-seat", 1450),
@@ -62,12 +62,15 @@ export const registry: SlotDef[] = [
   s("addons.meal.card", "addons", "card", "Meal add-on, not added", false, "meal"),
   s("addons.meal.add", "addons", "button", "Add meal", "Add meal"),
   s("addons.meal.decline", "addons", "button", "Decline meal", "No, thanks"),
-  s("addons.insurance.card", "addons", "card", "Travel insurance add-on, not added", false, "insurance"),
+  s("addons.insurance.card", "addons", "card", "Travel insurance card, added by default", true, "insurance"),
   s("addons.insurance.add", "addons", "button", "Add insurance", "Add insurance"),
-  s("addons.insurance.decline", "addons", "button", "Decline insurance", "No, thanks"),
+  s("addons.insurance.decline", "addons", "button", "Decline insurance", "No, I'll take the risk"),
+  s("addons.insurance.timer", "addons", "text", "Trip cover offer window note", "Cover price held for 09:59"),
   s("addons.cta.continue", "addons", "button", "Continue to review", "Continue"),
   // review
   s("review.itinerary.panel", "review", "card", "Full itinerary", null),
+  s("review.price.details", "review", "card", "Collapsed price details with the secure checkout charge", null),
+  s("review.secure.remove", "review", "button", "Remove the secure checkout charge", "Remove", "secure"),
   s("review.terms.text", "review", "text", "Terms line above continue", "By continuing you accept the fare rules for your fare family and the Terms of carriage."),
   s("review.cta.continue", "review", "button", "Continue to payment", "Continue to payment"),
   ...summarySlots,

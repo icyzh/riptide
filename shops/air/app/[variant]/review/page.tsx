@@ -1,10 +1,26 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Slot, SlotButton, formatINR, useFlow, useHydrated, usePrice, useSession } from "@riptide/core";
+import { Slot, SlotButton, formatINR, useFlow, useHydrated, useLineToggle, usePrice, useSession } from "@riptide/core";
 import { ADDONS, FARES, cityById, cityName, dur, fmtDate, hhmm, seatPrice, type AddonKey } from "@/lib/air";
 import { BookingShell, FlightLine, Loading, NeedEarlier } from "@/components/Booking";
 import { paxCount, segmentsOf, type AirState } from "@/shop.config";
+
+function PriceDetails() {
+  const [on, setOn] = useLineToggle("secure");
+  const price = usePrice("review");
+  const line = price.lines.find((l) => l.key === "secure");
+  if (!line) return null;
+  return (
+    <Slot id="review.price.details" as="details" className="sk-fine">
+      <summary>Price details</summary>
+      <p>
+        {line.label}: {on ? formatINR(line.amount) : "removed"} (GST included). Covers payment screening and ticket delivery.{" "}
+        {on && <SlotButton id="review.secure.remove" variant="link" onClick={() => setOn(false)}>Remove</SlotButton>}
+      </p>
+    </Slot>
+  );
+}
 
 export default function Review() {
   const [st] = useSession<AirState>();
@@ -61,11 +77,12 @@ export default function Review() {
             {addons.length ? <ul>{addons.map((k) => <li key={k}>{ADDONS[k].title}</li>)}</ul> : <p className="sk-muted">None added.</p>}
             <h3 className="sk-h4">Contact</h3>
             <p className="sk-muted">{st.contact?.email || "Not added"} · {st.contact?.phone ? `+91 ${st.contact.phone}` : ""}</p>
-            <p className="sk-muted">Offers by email: {st.optin ? "Yes" : "No"}</p>
+            <p className="sk-muted">Offers by email: {st.optin ?? true ? "Yes" : "No"}</p>
           </div>
         </div>
         <p className="sk-fine"><Link href={flow.href("passengers")} className="rt-link">Edit travellers</Link> · <Link href={flow.href("seats")} className="rt-link">Edit seats</Link> · <Link href={flow.href("addons")} className="rt-link">Edit add-ons</Link> · {segs.map(([, f]) => `${cityName(f.from)} → ${cityName(f.to)}`).join(" · ")}</p>
       </Slot>
+      <PriceDetails />
       <Slot id="review.terms.text" as="p" className="sk-fine">
         By continuing you accept the fare rules for your fare family and the Terms of carriage.
       </Slot>
