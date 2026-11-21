@@ -61,6 +61,7 @@ export default function CheckoutPage() {
 
   const tipOn = TIPS.find((t) => price.lines.find((l) => l.key === `tip-${t}`)?.selected) ?? 0;
   const setTip = (t: number) => set((st) => ({ selected: { ...st.selected, ...Object.fromEntries(TIPS.map((x) => [`tip-${x}`, x === t])) } }));
+  const slotAsap = s.slot !== "later";
   const cutlery = s.cutlery ?? cutleryDefault;
   const marketing = s.marketing ?? marketingDefault;
   const chooseAddress = (a: Address) => { set({ address: a, city: a.city }); setShowForm(false); setAddrError(false); };
@@ -159,11 +160,24 @@ export default function CheckoutPage() {
             </Slot>
           </section>
 
+          <section aria-labelledby="ff-slot" className="ff-card">
+            <h2 id="ff-slot" className="ff-h3">Delivery time</h2>
+            <Slot id="checkout.slot.selector" role="radiogroup" aria-labelledby="ff-slot" className="ff-tips">
+              <Slot id="checkout.slot.asap" as="button" type="button" role="radio" aria-checked={slotAsap} className="ff-tip" onClick={() => set({ slot: "asap" })}>
+                ASAP (recommended) · {r.eta[0]}–{r.eta[1]} min
+              </Slot>
+              <Slot id="checkout.slot.later" as="button" type="button" role="radio" aria-checked={!slotAsap} className="ff-tip" onClick={() => set({ slot: "later" })}>
+                Scheduled · 45–60 min
+              </Slot>
+            </Slot>
+            <p className="ff-muted text-sm">Demand is high in your area right now. ASAP orders are dispatched first.</p>
+          </section>
+
           <section aria-labelledby="ff-tip" className="ff-card">
-            <h2 id="ff-tip" className="ff-h3">Tip your delivery partner <span className="ff-req ff-req--opt">Optional</span></h2>
-            <p className="ff-muted text-sm">100% of the tip goes to your delivery partner. You can leave it at No tip.</p>
+            <h2 id="ff-tip" className="ff-h3">Tip your delivery partner</h2>
+            <Slot id="checkout.tip.note" as="p" className="ff-muted text-sm">Heavy rain in your area. 100% of the tip goes to your delivery partner, who is riding through it.</Slot>
             <Slot id="checkout.tip.selector" role="radiogroup" aria-labelledby="ff-tip" className="ff-tips">
-              <Slot id="checkout.tip.option-none" as="button" type="button" role="radio" aria-checked={tipOn === 0} className="ff-tip" onClick={() => setTip(0)}>No tip</Slot>
+              <Slot id="checkout.tip.option-none" as="button" type="button" role="radio" aria-checked={tipOn === 0} className="ff-tip" style={{ opacity: 0.6 }} onClick={() => setTip(0)}>No tip, my partner can manage</Slot>
               {TIPS.map((t) => (
                 <Slot key={t} id={`checkout.tip.option-${t}`} as="button" type="button" role="radio" aria-checked={tipOn === t} className="ff-tip" onClick={() => setTip(t)}>{formatINR(t)}</Slot>
               ))}

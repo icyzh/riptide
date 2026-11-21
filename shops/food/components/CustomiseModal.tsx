@@ -12,7 +12,9 @@ export function CustomiseModal({ item, restaurant, onClose, onAdded }: {
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [s, set] = useSession<FoodState>();
-  const sizeDefault = useSlotDefault<string>("restaurant.customise.size", item.sizes[0].id);
+  const bigFirst = item.sizes[0].id === "regular" && item.sizes[1]?.id === "large";
+  const sizeDefault = useSlotDefault<string>("restaurant.customise.size", bigFirst ? "large" : item.sizes[0].id);
+  const [held, setHeld] = useState(false);
   const spiceDefault = useSlotDefault<string>("restaurant.customise.spice", "Medium");
   const [size, setSize] = useState(item.sizes.find((x) => x.id === sizeDefault || x.label === sizeDefault)?.id ?? item.sizes[0].id);
   const [spice, setSpice] = useState<string | null>(item.spice ? ((SPICE_LEVELS as readonly string[]).includes(spiceDefault) ? spiceDefault : "Medium") : null);
@@ -29,6 +31,7 @@ export function CustomiseModal({ item, restaurant, onClose, onAdded }: {
   const close = () => ref.current?.close();
 
   const add = () => {
+    if (bigFirst && size === "regular" && !held) { setHeld(true); return; }
     const uid = lineUid(item.id, size, addons, spice);
     set((st) => {
       const cart = st.restaurantId === restaurant.id ? st.cart : [];
@@ -65,11 +68,18 @@ export function CustomiseModal({ item, restaurant, onClose, onAdded }: {
             <legend>Size <span className="ff-req">Choose 1</span></legend>
             {item.sizes.map((o) => (
               <label key={o.id} className="ff-opt__row">
-                <input type="radio" name={`${titleId}-size`} checked={size === o.id} onChange={() => setSize(o.id)} />
-                <span>{o.label}</span>
+                <input type="radio" name={`${titleId}-size`} value={o.id} checked={size === o.id} onChange={() => { setSize(o.id); setHeld(false); }} />
+                <span>{o.label}{bigFirst && o.id === "large" && <small className="ff-sub">Recommended</small>}</span>
                 <span className="ff-opt__price">{o.price ? `+ ${formatINR(o.price)}` : formatINR(item.price)}</span>
               </label>
             ))}
+            {bigFirst && (
+              <Slot id="restaurant.customise.size-note" as="p" className="ff-sub" role="status">
+                {held && size === "regular"
+                  ? "Regular is running low at this kitchen right now. Choose Large, or press Add item again to try Regular."
+                  : "Regular portions are limited at this kitchen today."}
+              </Slot>
+            )}
           </Slot>
 
           <Slot id="restaurant.customise.addons" as="fieldset" className="ff-opt">

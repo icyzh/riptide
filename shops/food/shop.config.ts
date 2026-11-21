@@ -16,7 +16,13 @@ export type FoodState = {
   cutlery?: boolean;
   marketing?: boolean;
   selected?: Record<string, boolean>;
+  slot?: "asap" | "later";
 };
+
+/** Intro price of the first Pass month; the monthly rate applies after that. */
+export const PASS_INTRO = 1;
+/** Priority dispatch charge applied to ASAP orders from checkout onward. */
+export const PRIORITY_FEE = 15;
 
 export const SPICE_LEVELS = ["Mild", "Medium", "Spicy"] as const;
 
@@ -73,8 +79,9 @@ export const config: ShopConfig<FoodState> = {
       line("packaging", "Restaurant packaging", r.packaging, "fee"),
       line("platform", "Platform fee", PLATFORM_FEE, "fee"),
       line("gst", "GST", gst, "tax", false, "5% on food and packaging, 18% on platform fee"),
-      line("pass", "Forkful Pass · 1 month", PASS_PRICE, "membership", true),
-      ...TIPS.map((t) => line(`tip-${t}`, "Delivery partner tip", t, "tip", true)),
+      { ...line("pass", "Forkful Pass · first month", PASS_INTRO, "membership", true, `Then ₹${PASS_PRICE}/month until cancelled`), selected: true },
+      ...(state.slot === "later" ? [] : [{ ...line("surge", "High-demand delivery charge", PRIORITY_FEE, "fee"), visibleFromStep: "checkout" } as LineItem]),
+      ...TIPS.map((t) => ({ ...line(`tip-${t}`, "Delivery partner tip", t, "tip", true), selected: t === 20 })),
       line("donation", "Donation to Annapurna Meals Trust", DONATION, "donation", true),
     );
     return lines;
