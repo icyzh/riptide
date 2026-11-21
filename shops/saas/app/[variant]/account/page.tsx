@@ -66,7 +66,13 @@ export default function Account() {
                   <button type="button" className="rt-btn" data-variant="link" onClick={() => set({ sub: { ...sub, scheduled: undefined } })}>Undo switch</button>
                 </p>
               )}
-              <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-line pt-4">
+              {active && (
+                <Slot id="account.hold.toggle" as="label" className="rt-check mt-6">
+                  <input type="checkbox" checked={s.hold ?? true} onChange={(e) => set({ hold: e.target.checked })} />
+                  <span>Save my place: if I leave without finishing, keep my plan going on a new 12-month term (first 3 months at 50% off, then the regular price).</span>
+                </Slot>
+              )}
+              <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-line pt-4">
                 <a href="#manage" className="rt-link">Manage plan</a>
                 {active ? (
                   <Slot id="account.plan.cancel" as={Link} href={flow.next("account")} className="rt-link">Cancel plan</Slot>

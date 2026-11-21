@@ -19,6 +19,7 @@ export type SaasState = {
   vtry?: number;
   verified?: boolean;
   offer?: boolean;
+  hold?: boolean;
   /** The demo account's existing subscription (seeded active so the cancel flow works without buying). */
   sub: Subscription;
 };

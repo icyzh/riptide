@@ -69,6 +69,7 @@ export const registry: SlotDef[] = [
   // Account + cancel
   { id: "account.plan.card", step: "account", kind: "card", description: "Current plan summary", default: null },
   { id: "account.billing.next", step: "account", kind: "price", description: "Next billing date and amount", default: "{next}" },
+  { id: "account.hold.toggle", step: "account", kind: "checkbox", description: "Save-my-place renewal hold (starts ticked)", default: true },
   { id: "account.plan.cancel", step: "account", kind: "link", description: "Cancel plan link (first click of the cancel flow)", default: "Cancel plan" },
   { id: "account.manage.selector", step: "account", kind: "selector", description: "Switch plan / billing term", default: "{current}" },
   { id: "account.manage.save", step: "account", kind: "button", description: "Confirm plan switch", default: "Switch plan" },
