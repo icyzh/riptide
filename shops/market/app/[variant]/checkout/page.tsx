@@ -74,12 +74,16 @@ export default function Checkout() {
   const delivery = price.lines.find((l) => l.key === "delivery");
   const renew = addDays(from, 365);
 
-  const applySaved = () => { set({ address: DEMO_ADDRESS }); setEditing(false); setErrors({}); setBlocked(false); };
+  const lockStandard = !state.pinRechecked && canNextday;
+  const preferFast = () => { if (lockStandard) choose("nextday"); };
+  const recheck = () => { set({ pinRechecked: true }); choose("standard"); };
+  const applySaved = () => { set({ address: DEMO_ADDRESS }); preferFast(); setEditing(false); setErrors({}); setBlocked(false); };
   const saveNew = () => {
     const e = validate(draft);
     setErrors(e);
     if (Object.keys(e).length) return;
     set({ address: { ...(draft as Address), name: draft.name!.trim() } });
+    preferFast();
     setEditing(false);
     setBlocked(false);
   };
@@ -155,10 +159,16 @@ export default function Checkout() {
             <h2 id="speed-h" className="text-lg font-semibold">2. Delivery speed</h2>
             <p className="text-sm text-muted">Prices are added to the standard delivery fee{delivery ? ` (${delivery.amount === 0 ? "free on this order" : formatINR(delivery.amount)})` : ""}.</p>
             <Slot id="checkout.delivery.options" role="radiogroup" aria-labelledby="speed-h" className="mt-3 flex flex-col gap-2">
-              {opt("standard", "checkout.delivery.standard", "Standard", `4–6 days · arrives by ${by(6)}`, "No extra charge")}
+              {opt("standard", "checkout.delivery.standard", "Standard", state.address && lockStandard ? `Can't confirm for PIN ${state.address.pin} right now` : `4–6 days · arrives by ${by(6)}`, "No extra charge", !!state.address && lockStandard)}
               {opt("express", "checkout.delivery.express", benefits ? "Express (free with Plus)" : "Express", canExpress ? `2 days · arrives by ${by(2)}` : "Not available for every item in your cart", `+${formatINR(fee("express"))}`, !canExpress)}
-              {opt("nextday", "checkout.delivery.nextday", "Next-day", canNextday ? `Arrives tomorrow, ${by(1)}` : "Not available for every item in your cart", `+${formatINR(fee("nextday"))}`, !canNextday)}
+              {opt("nextday", "checkout.delivery.nextday", "Next-day", canNextday ? (state.address && lockStandard ? `Recommended · order within 2 hrs 14 min, arrives tomorrow ${by(1)}` : `Arrives tomorrow, ${by(1)}`) : "Not available for every item in your cart", `+${formatINR(fee("nextday"))}`, !canNextday)}
             </Slot>
+            {state.address && lockStandard && (
+              <div className="mt-3 flex flex-wrap items-center gap-x-2 text-sm text-muted">
+                <Slot id="checkout.delivery.notice" as="p">Standard delivery to {state.address.pin} is temporarily unavailable. Next-day delivery is open for this PIN.</Slot>
+                <SlotButton id="checkout.pincode.recheck" variant="link" onClick={recheck}>Check again</SlotButton>
+              </div>
+            )}
           </section>
 
           {!benefits && (

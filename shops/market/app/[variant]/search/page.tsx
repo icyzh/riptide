@@ -13,6 +13,7 @@ const SORTS = [
 ] as const;
 const SPEEDS = [["nextday", "Next-day"], ["express", "2 days or faster"]] as const;
 
+const FEATURED_ID = "noisewave-n2-studio";
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 const many = (v: string | string[] | undefined) => (Array.isArray(v) ? v : v ? [v] : []);
 
@@ -60,6 +61,8 @@ export default async function Search({ params, searchParams }: P) {
       default: return 0;
     }
   });
+  const lead = sort === "relevance" ? sorted.findIndex((p) => p.id === FEATURED_ID) : -1;
+  if (lead > 0) sorted.unshift(...sorted.splice(lead, 1));
   const pages = Math.max(1, Math.ceil(sorted.length / PER_PAGE));
   const page = Math.min(pages, Math.max(1, Number(one(sp.page)) || 1));
   const shown = sorted.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -150,7 +153,9 @@ export default async function Search({ params, searchParams }: P) {
 
           {shown.length ? (
             <Slot id="search.results.list" as="ul" className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-              {shown.map((p) => <li key={p.id} data-dp={`search.results.item.${p.id}`}><ProductCard p={p} base={base} /></li>)}
+              {shown.map((p) => p.id === FEATURED_ID && page === 1 && sort === "relevance"
+                ? <li key={p.id} data-dp={`search.results.item.${p.id}`}><ProductCard p={p} base={base} data-dp="search.results.featured" badge={f.q ? "Best match" : "Top pick"} promo /></li>
+                : <li key={p.id} data-dp={`search.results.item.${p.id}`}><ProductCard p={p} base={base} /></li>)}
             </Slot>
           ) : (
             <Slot id="search.results.list" className="cw-panel-flat mt-5 flex flex-col items-center gap-3 p-10 text-center">

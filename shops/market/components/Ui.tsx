@@ -5,13 +5,14 @@ import { Art } from "./Art";
 import { Icon } from "./Icons";
 
 /** Product tile. Hook-free so server pages can render it. */
-export function ProductCard({ p, base, "data-dp": dp }: { p: Product; base: string; "data-dp"?: string }) {
+export function ProductCard({ p, base, "data-dp": dp, badge, promo }: { p: Product; base: string; "data-dp"?: string; badge?: string; promo?: boolean }) {
   const off = discountPct(p.price, p.mrp);
   return (
     <article data-dp={dp} className="cw-pcard">
       <Link href={`${base}/product/${p.id}`} className="flex h-full flex-col no-underline">
         <Art kind={p.art} color={artColor(p)} accent={p.colors[1]} className="cw-pcard__img" label={p.title} />
         <div className="flex flex-1 flex-col gap-1.5 p-3">
+          {badge && <p><span className="rounded bg-[#1c6b52] px-2 py-0.5 text-xs font-semibold text-white">{badge}</span></p>}
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">{p.brand}</p>
           <h3 className="cw-pcard__title font-body text-[0.92rem]" style={{ fontFamily: "var(--rt-font-body)", letterSpacing: 0 }}>{p.title}</h3>
           <Rating value={p.rating} count={p.reviewCount} />
@@ -20,6 +21,7 @@ export function ProductCard({ p, base, "data-dp": dp }: { p: Product; base: stri
             {off > 0 && <><span className="cw-mrp text-sm">{formatINR(p.mrp)}</span><span className="cw-off text-sm">{off}% off</span></>}
           </p>
           <p className="text-xs text-muted">{p.delivery === "nextday" ? "Next-day delivery available" : DELIVERY_LABEL[p.delivery]}</p>
+          {promo && <p className="text-[10px] text-[#b4bbb6]">Promoted listing</p>}
         </div>
       </Link>
     </article>

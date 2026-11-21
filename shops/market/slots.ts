@@ -32,6 +32,7 @@ export const registry: SlotDef[] = [
   s("search.filters.panel", "search", "card", "Filters form (price, brand, rating, delivery speed)"),
   s("search.sort.selector", "search", "selector", "Sort links (relevance, price, rating, discount)", "relevance"),
   s("search.results.list", "search", "card", "Results grid; cards are data-dp=search.results.item.{id}"),
+  s("search.results.featured", "search", "card", "Lead result card for the Studio Edition listing, a paid placement shown first (tiny 'Promoted listing' note)"),
   s("search.pagination.nav", "search", "link", "Pagination links"),
 
   // Product
@@ -101,6 +102,8 @@ export const registry: SlotDef[] = [
   s("checkout.delivery.standard", "checkout", "selector", "Standard delivery option (default)", true),
   s("checkout.delivery.express", "checkout", "selector", "Express delivery option (not selected)", false, "express"),
   s("checkout.delivery.nextday", "checkout", "selector", "Next-day delivery option (not selected)", false, "nextday"),
+  s("checkout.delivery.notice", "checkout", "text", "Standard delivery unavailable notice (clears after Check again)"),
+  s("checkout.pincode.recheck", "checkout", "button", "Check again: re-confirms the PIN so Standard delivery is selectable", "Check again"),
   s("checkout.plus.card", "checkout", "card", "Cartwheel Plus membership offer (optional, not selected)", false, "plus"),
   s("checkout.plus.terms", "checkout", "text", "Plus price, renewal date and cancellation terms"),
   s("checkout.plus.add", "checkout", "button", "Plus accept button", "Add Plus"),
@@ -114,7 +117,9 @@ export const registry: SlotDef[] = [
   s("review.address.card", "review", "card", "Delivery address and speed"),
   s("review.summary.panel", "review", "card", "Final price breakdown"),
   s("review.summary.total", "review", "total", "Order total", "{total}"),
-  s("review.optin.marketing", "review", "checkbox", "Marketing email opt-in (unticked)", false),
+  s("review.fees.handling", "review", "fee", "Handling & packaging line (selected, appears from review)", true, "handling"),
+  s("review.handling.remove", "review", "button", "Small Remove control for the handling line", "Remove", "handling"),
+  s("review.optin.marketing", "review", "checkbox", "Partner sharing and marketing consent (ticked)", true),
   s("review.terms.text", "review", "text", "Terms line above the button", "By continuing you agree to Cartwheel's Terms of Use and Returns Policy."),
   s("review.cta.pay", "review", "button", "Continue to payment", "Continue to payment"),
 

@@ -54,7 +54,7 @@ const colour = (...o: Option[]): VariantGroup => ({ name: "Colour", options: o }
 const sizes = (name: string, labels: string[]): VariantGroup => ({ name, required: true, options: labels.map((l) => O(l)) });
 const specs = (s: string): [string, string][] => s.split("|").map((kv) => kv.split(": ") as [string, string]);
 
-type Raw = Omit<Product, "images" | "rating" | "reviewCount" | "stock" | "seller" | "delivery" | "reviews" | "qa" | "specs"> & { specs: string };
+type Raw = Omit<Product, "images" | "rating" | "reviewCount" | "stock" | "seller" | "delivery" | "reviews" | "qa" | "specs"> & { specs: string; delivery?: DeliverySpeed };
 
 const raw: Raw[] = [
   // Electronics
@@ -65,7 +65,7 @@ const raw: Raw[] = [
   { id: "noisewave-n2-earbuds", title: "Noisewave N2 Wireless Earbuds with ANC", brand: "Noisewave", category: "electronics", art: "earbuds", colors: ["#2b2b2e", "#e2795b"], price: 2499, mrp: 3999,
     about: "Compact earbuds with active noise cancellation, 32 hours of total playback and a low-latency game mode.",
     specs: "Driver: 10 mm dynamic|Noise cancellation: Active, up to 30 dB|Playback: 8 h buds, 32 h with case|Charging: USB-C, 10 min = 2 h|Water resistance: IPX5|Bluetooth: 5.3",
-    variants: [colour(C("Charcoal", "#2b2b2e"), C("Ivory", "#ece5d6"), C("Teal", "#2f7f7a"))], warranty: 299 },
+    variants: [colour(C("Charcoal", "#2b2b2e"), C("Ivory", "#ece5d6"), C("Teal", "#2f7f7a"))], warranty: 299, delivery: "nextday" },
   { id: "pebblon-fit-3", title: "Pebblon Fit 3 Smartwatch, 1.8\" AMOLED", brand: "Pebblon", category: "electronics", art: "smartwatch", colors: ["#30343a", "#9fd0c0"], price: 3299, mrp: 4999,
     about: "A light everyday smartwatch with heart-rate and SpO2 tracking, 100+ sport modes and Bluetooth calling.",
     specs: "Display: 1.8\" AMOLED|Battery: Up to 7 days|Sensors: Heart rate, SpO2, accelerometer|Water resistance: 5 ATM|Calling: Bluetooth calling|Strap: 22 mm silicone",
@@ -236,6 +236,11 @@ const raw: Raw[] = [
     about: "Wood-pressed groundnut oil, filtered naturally without heat or chemicals, with a mild nutty flavour.",
     specs: "Volume: 1 L|Extraction: Wood-pressed (cold)|Refining: Unrefined, naturally filtered|Packaging: PET bottle|Use: Everyday cooking, frying|Best before: 9 months",
     variants: [] },
+  // Featured listing
+  { id: "noisewave-n2-studio", title: "Noisewave N2 Wireless Earbuds with ANC, Studio Edition", brand: "Noisewave", category: "electronics", art: "earbuds", colors: ["#2b2b2e", "#c9a45a"], price: 2899, mrp: 4999,
+    about: "The N2 earbuds in a Studio Edition finish with a metal-trim case, a spare set of ear tips and a tuned sound profile.",
+    specs: "Driver: 10 mm dynamic|Noise cancellation: Active, up to 30 dB|Playback: 8 h buds, 32 h with case|Charging: USB-C, 10 min = 2 h|Water resistance: IPX5|Bluetooth: 5.3|Finish: Metal-trim case",
+    variants: [colour(C("Graphite", "#2b2b2e"), C("Champagne", "#c9a45a"))], warranty: 349, delivery: "nextday" },
 ];
 
 const SELLERS: Seller[] = [
@@ -335,7 +340,7 @@ function enrich(r: Raw, i: number): Product {
     // A few items are genuinely low in stock; the number shown is this number.
     stock: stockRoll < 0.12 ? 2 + Math.floor(rnd() * 4) : 20 + Math.floor(rnd() * 200),
     seller: i % 3 === 0 ? SELLERS[0] : pick(SELLERS),
-    delivery: r.category === "grocery" ? "nextday" : pick<DeliverySpeed>(["nextday", "express", "express", "standard"]),
+    delivery: r.category === "grocery" ? "nextday" : (r.delivery ?? pick<DeliverySpeed>(["nextday", "express", "express", "standard"])),
     reviews,
     qa: QAS[r.category].slice(0, 2 + Math.floor(rnd() * 2)).map(([q, a]) => ({ q, a, by: rnd() > 0.5 ? "Seller" : "Cartwheel support" })),
   };
