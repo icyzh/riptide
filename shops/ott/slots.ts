@@ -52,7 +52,7 @@ export const registry: SlotDef[] = [
   { id: "signup-plan.verify.retry", step: "signup-plan", kind: "button", description: "Try again (works on retry)", default: null },
   { id: "cancel.offer.card", step: "cancel", kind: "card", description: "Before you go: 3 months at half price", default: null },
   { id: "cancel.offer.accept", step: "cancel", kind: "button", description: "Accept the half-price offer (restarts the term)", default: null },
-  { id: "cancel.offer.decline", step: "cancel", kind: "link", description: "Decline the offer and keep cancelling", default: null },
+  { id: "cancel.offer.decline", step: "cancel", kind: "button", description: "Decline the offer and keep cancelling", default: null },
   { id: "signup-plan.optin.marketing", step: "signup-plan", kind: "checkbox", description: "Marketing email opt-in (unticked)", default: false },
   { id: "signup-plan.summary.panel", step: "signup-plan", kind: "card", description: "Itemised breakdown before payment", default: null },
   { id: "signup-plan.summary.total", step: "signup-plan", kind: "total", description: "Total due today", default: "{total}" },

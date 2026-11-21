@@ -16,6 +16,7 @@ export default function Cancel() {
   const router = useRouter();
   const reasonDefault = useSlotDefault<string>("account.cancel.reason", "");
   const [reason, setReason] = useState(reasonDefault);
+  const [declined, setDeclined] = useState(false);
   const plan = planById(s.membership.plan)!;
 
   if (hydrated && s.membership.status === "cancelled") {
@@ -41,13 +42,15 @@ export default function Cancel() {
         </Slot>
         <Slot id="cancel.offer.card" as="section" className="rb-panel rb-stack" aria-label="Before you go">
           <h2 className="rb-h3">Before you go: 3 months at half price</h2>
-          {s.offer ? (
+          {declined ? (
+            <p role="status" className="rb-fine">Offer declined. You can continue cancelling below.</p>
+          ) : s.offer ? (
             <p role="status">Offer applied. Your membership now runs a fresh 3-month term at half price, then renews at full price.</p>
           ) : (
             <>
               <p className="rb-muted">Stay and pay 50% less for the next 3 months. Starts a new 3-month term; full price applies after.</p>
               <SlotButton id="cancel.offer.accept" variant="primary" onClick={() => set({ offer: true })}>Keep my membership at 50% off</SlotButton>
-              <Slot id="cancel.offer.decline" as="a" href="#cancel-actions" className="rb-fine">No thanks, I&apos;d rather pay full price</Slot>
+              <SlotButton id="cancel.offer.decline" variant="tiny" onClick={() => setDeclined(true)}>No thanks, I&apos;d rather pay full price</SlotButton>
             </>
           )}
         </Slot>
