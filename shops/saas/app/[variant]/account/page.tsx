@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Slot, SlotButton, formatINR, useFlow, useSession, useSlotDefault } from "@riptide/core";
 import {
-  APPS, DEMO_USER, PLANS, TERMS, accessUntil, fmtDate, nextBillingDate, pastCharges, planLabel, termById,
+  APPS, DEMO_USER, TODAY, PLANS, TERMS, accessUntil, fmtDate, nextBillingDate, pastCharges, planLabel, termById,
   type PlanId, type Selection, type Subscription, type TermId,
 } from "@/catalog";
 import type { SaasState } from "@/shop.config";
@@ -15,6 +15,7 @@ export default function Account() {
   const hydrated = useHydrated();
   const flow = useFlow("cancel");
   const sub = s.sub;
+  const [offer, setOffer] = useState(false);
   const quote = useQuote(sub, "payment");
   const nextQuote = useQuote(sub.scheduled ?? sub, "payment");
   const charge = chargeOf(quote);
@@ -69,12 +70,24 @@ export default function Account() {
               <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-line pt-4">
                 <a href="#manage" className="rt-link">Manage plan</a>
                 {active ? (
-                  <Slot id="account.plan.cancel" as={Link} href={flow.next("account")} className="rt-link">Cancel plan</Slot>
+                  <Slot id="account.plan.cancel" as={Link} href={flow.next("account")} className="rt-link" onClick={(e: React.MouseEvent) => { if (!offer) { e.preventDefault(); setOffer(true); } }}>Cancel plan</Slot>
                 ) : (
                   <button type="button" className="rt-btn" data-variant="secondary" onClick={() => set({ sub: { ...sub, status: "active", cancelledOn: undefined, reason: undefined } })}>Restart plan</button>
                 )}
               </div>
             </Slot>
+
+            {active && offer && (
+              <Slot id="account.offer.card" as="section" className="ps-panel border-2 border-accent p-6" aria-label="Before you go">
+                <p className="ps-eyebrow">Before you go</p>
+                <h2 className="mt-1 text-xl font-bold">Creators who stay keep their work moving. Take 50% off for 3 months.</h2>
+                <div className="mt-4">
+                  <SlotButton id="account.offer.accept" variant="primary" className="w-full" onClick={() => { set({ retention: true, sub: { ...sub, term: "annual-monthly", startedOn: TODAY } }); setOffer(false); }}>Stay and save 50%</SlotButton>
+                </div>
+                <p className="mt-3 text-[0.7rem] leading-snug text-muted">Offer moves your plan to Annual, billed monthly: a new 12-month commitment starting today, then the standard rate. Early-termination fee applies after that.</p>
+                <p className="mt-4 text-sm"><SlotButton id="account.offer.continue" as={Link} href={flow.next("account")} variant="link">No thanks, I don&apos;t want to save. Continue cancelling</SlotButton></p>
+              </Slot>
+            )}
 
             {active && <Manage sub={sub} next={next} onSave={(sel) => set({ sub: { ...sub, scheduled: sel } })} />}
           </div>
