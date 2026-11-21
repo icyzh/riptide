@@ -14,7 +14,8 @@ export default function Review() {
   const hydrated = useHydrated();
   const price = usePrice("review");
   const [storage, setStorage] = useLineToggle("storage");
-  const optDefault = useSlotDefault<boolean>("review.optin.marketing", false);
+  const [care, setCare] = useLineToggle("care");
+  const optDefault = useSlotDefault<boolean>("review.optin.marketing", true);
   const optin = s.optin ?? optDefault;
 
   if (!hydrated) return <main data-riptide-step="review" className="ps-wrap py-8"><Steps current="review" /><Skeleton h={420} className="mt-8" /></main>;
@@ -25,6 +26,10 @@ export default function Review() {
   const recurring = price.lines.filter((l) => l.selected && l.kind !== "discount").reduce((t, l) => t + l.amount, 0);
   const chargeText = `${formatINR(recurring)} incl. GST`;
   const st = STORAGE_PRICE;
+  const tries = s.verify ?? 0;
+  const verified = tries >= 99;
+  const blocked = trial && !verified;
+  const onePlan = planById(s.plan)?.name ?? "All Apps";
 
   return (
     <main data-riptide-step="review" className="ps-wrap py-8">
@@ -75,14 +80,49 @@ export default function Review() {
           <section className="ps-panel p-6">
             <Slot id="review.optin.marketing" as="label" className="rt-check">
               <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
-              <span>Send me tutorials, product news and offers by email. You can unsubscribe at any time.</span>
+              <span>Keep me posted with tutorials, product news and offers from Prism and selected partners (your email is shared with them). Untick to opt out; you can also unsubscribe at any time.</span>
             </Slot>
           </section>
+
+          {!trial && (
+            <Slot id="review.continuity.card" as="section" className="ps-panel p-6" aria-label="Plan continuity">
+              <h2 className="text-lg font-bold">Plan continuity</h2>
+              <p className="mt-2 text-sm text-muted">Priority support with a 4-hour reply, migration help and uninterrupted renewals. Teams that keep it resolve issues 3× faster.</p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <SlotButton id="review.continuity.toggle" variant={care ? "primary" : "secondary"} aria-pressed={care} onClick={() => setCare(!care)}>{care ? "✓ Continuity included" : "Include continuity"}</SlotButton>
+                <span className="text-xs text-muted">{care ? "Priced in your order summary." : "Not included."}</span>
+              </div>
+            </Slot>
+          )}
+
+          {trial && (
+            <Slot id="review.verify.card" as="section" className="ps-panel p-6" aria-label="Verify your card">
+              <h2 className="text-lg font-bold">Verify your card for the trial</h2>
+              {verified ? (
+                <p className="mt-2 text-sm">Verified. Nothing is charged today.</p>
+              ) : (
+                <>
+                  <p className="mt-2 text-sm text-muted">We place a ₹0 hold to start your trial.</p>
+                  {tries >= 1 && (
+                    <p role="alert" className="mt-3 rounded-[var(--rt-radius-sm)] bg-surface-2 p-3 text-sm">We couldn&apos;t verify your card for the trial (code PG-504). Paid plans don&apos;t need verification. You can also try again or use UPI.</p>
+                  )}
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    {tries === 0 && <SlotButton id="review.verify.retry" variant="secondary" onClick={() => set({ verify: 1 })}>Verify card</SlotButton>}
+                    {tries >= 1 && <SlotButton id="review.verify.switch" variant="primary" onClick={() => set({ mode: "buy", verify: 0 })}>Start {onePlan} now and get 10% off the first month</SlotButton>}
+                    {tries >= 1 && <SlotButton id="review.verify.retry" variant="link" onClick={() => set({ verify: 99 })}>Try again</SlotButton>}
+                    {tries >= 1 && <SlotButton id="review.verify.upi" variant="link" onClick={() => set({ verify: 99 })}>Verify with UPI instead</SlotButton>}
+                  </div>
+                </>
+              )}
+            </Slot>
+          )}
         </div>
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
           <Summary step="review">
-            <Slot id="review.cta.continue" as={Link} href={flow.next("review")} className="rt-btn mt-2 w-full" variant="primary">Continue to payment</Slot>
+            {blocked
+              ? <button type="button" disabled className="rt-btn mt-2 w-full" data-variant="secondary">Verify your card to continue</button>
+              : <Slot id="review.cta.continue" as={Link} href={flow.next("review")} className="rt-btn mt-2 w-full" variant="primary">Continue to payment</Slot>}
             <p className="text-xs text-muted">You&apos;ll choose UPI, card, netbanking or a wallet on the next page.</p>
           </Summary>
         </div>
