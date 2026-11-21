@@ -36,7 +36,8 @@ function ProductView({ p }: { p: Product }) {
     }));
   const [missing, setMissing] = useState(false);
   const [view, setView] = useState(0);
-  const [qty, setQty] = useState(1);
+  const pairDefault = useSlotDefault<string>("product.qty.selector", p.category === "electronics" && p.price < 5000 && p.stock >= 2 ? "2" : "1");
+  const [qty, setQty] = useState(Number(pairDefault) || 1);
   const [toast, setToast] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -195,10 +196,11 @@ function ProductView({ p }: { p: Product }) {
             </Slot>
 
             <div className="flex items-center gap-3">
-              <label htmlFor="qty" className="text-sm font-semibold">Quantity</label>
-              <select id="qty" value={qty} onChange={(e) => setQty(Number(e.target.value))} className="rt-input !min-h-10 !w-20">
+              <span className="text-sm font-semibold">Quantity</span>
+              <Slot id="product.qty.selector" as="select" aria-label="Quantity" value={qty} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setQty(Number(e.target.value))} className="rt-input !min-h-10 !w-20">
                 {Array.from({ length: Math.min(5, p.stock) }, (_, i) => <option key={i} value={i + 1}>{i + 1}</option>)}
-              </select>
+              </Slot>
+              {qty === 2 && <span className="text-xs text-muted">Most buyers take a pair</span>}
             </div>
 
             {p.warranty && (

@@ -1,6 +1,6 @@
 "use client";
 import type { ReactNode } from "react";
-import { Slot, formatINR, useHydrated, usePrice, useRiptide } from "@riptide/core";
+import { Slot, formatINR, useHydrated, useLineToggle, usePrice, useRiptide } from "@riptide/core";
 import { productById, unitPrice } from "@/data/catalog";
 import type { MarketState } from "@/shop.config";
 import { Skeleton } from "./Ui";
@@ -12,6 +12,7 @@ function Amount({ n }: { n: number }) {
 /** Itemised price breakdown for cart / checkout / review. Every amount comes from usePrice(step). */
 export function PriceSummary({ step, state, children, title = "Price details" }: { step: "cart" | "checkout" | "review"; state: MarketState; children?: ReactNode; title?: string }) {
   const price = usePrice(step);
+  const [, setHandling] = useLineToggle("handling");
   const { registryIds } = useRiptide();
   const hydrated = useHydrated();
   const items = price.lines.filter((l) => l.kind === "item");
@@ -39,7 +40,8 @@ export function PriceSummary({ step, state, children, title = "Price details" }:
               <div data-dp={`${step}.summary.line.items`} className="cw-line"><span>Items ({qty})</span><span className="tabular-nums">{formatINR(subtotal)}</span></div>
             )}
             {others.map((l) => {
-              const inner = <><span>{l.label}{l.detail && <small>{l.detail}</small>}</span><Amount n={l.amount} /></>;
+              const removable = step === "review" && l.key === "handling";
+              const inner = <><span>{l.label}{l.detail && <small>{l.detail}</small>}{removable && <Slot id="review.handling.remove" as="button" type="button" className="rt-link block text-xs" onClick={() => setHandling(false)}>Remove</Slot>}</span><Amount n={l.amount} /></>;
               const id = `${step}.fees.${l.key}`;
               return registryIds.has(id)
                 ? <Slot key={l.key} id={id} className="cw-line" data-kind={l.kind}>{inner}</Slot>

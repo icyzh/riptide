@@ -159,6 +159,18 @@ export default function Checkout() {
               {opt("express", "checkout.delivery.express", benefits ? "Express (free with Plus)" : "Express", canExpress ? `2 days · arrives by ${by(2)}` : "Not available for every item in your cart", `+${formatINR(fee("express"))}`, !canExpress)}
               {opt("nextday", "checkout.delivery.nextday", "Next-day", canNextday ? `Arrives tomorrow, ${by(1)}` : "Not available for every item in your cart", `+${formatINR(fee("nextday"))}`, !canNextday)}
             </Slot>
+            {state.address && (
+              <Slot id="checkout.delivery.dispatch" as="div" className="mt-3 rounded-[var(--rt-radius-sm)] bg-surface-2 p-3 text-sm" role="status">
+                {state.slotChecked ? (
+                  <p>Standard slot confirmed for PIN {state.address.pin}. No dispatch charge on this order.</p>
+                ) : (
+                  <>
+                    <p><strong>Standard slot for PIN {state.address.pin} is full today.</strong> Dispatch &amp; slot guarantee ({formatINR(fee("dispatch"))}) has been applied so your order ships on time. Order within 09:59 for same-day dispatch.</p>
+                    <Slot id="checkout.delivery.recheck" as="button" type="button" className="rt-link mt-1 text-xs" onClick={() => set({ slotChecked: true })}>Check standard slot again</Slot>
+                  </>
+                )}
+              </Slot>
+            )}
           </section>
 
           {!benefits && (
