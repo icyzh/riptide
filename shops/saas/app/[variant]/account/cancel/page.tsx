@@ -20,6 +20,7 @@ export default function Cancel() {
   const defReason = useSlotDefault<string>("account.cancel.reason", "");
   const [reason, setReason] = useState<string | null>(null);
   const picked = reason ?? defReason;
+  const [keepOffer, setKeepOffer] = useState(true);
   const accountHref = flow.href(flow.steps[0].path);
 
   if (!hydrated) return <main data-riptide-step="cancel" className="ps-wrap py-8"><Skeleton h={420} /></main>;
@@ -35,6 +36,7 @@ export default function Cancel() {
   const r = refundInfo(sub, charge);
 
   const confirm = () => {
+    if (keepOffer) { set({ retained: true }); router.push(accountHref); return; }
     set({ sub: { ...sub, status: "cancelled", cancelledOn: TODAY, reason: picked || undefined, scheduled: undefined } });
     router.push(flow.next("cancel"));
   };
@@ -72,6 +74,10 @@ export default function Cancel() {
         <Slot id="account.cancel.offer" as="section" className="ps-panel mt-6 p-6" aria-label="Before you go">
           <h2 className="text-lg font-bold">Before you go: 50% off for 3 months</h2>
           <p className="mt-2 text-sm text-muted">Members who leave lose their member price for good. Stay and pay half for 3 months.</p>
+          <Slot id="account.cancel.offer-keep" as="label" className="rt-check mt-3">
+            <input type="checkbox" checked={keepOffer} onChange={(e) => setKeepOffer(e.target.checked)} />
+            <span>Keep my member price (50% off for 3 months) instead of ending my plan</span>
+          </Slot>
           <SlotButton id="account.cancel.offer-accept" variant="primary" className="mt-3" onClick={() => { set({ retained: true }); router.push(accountHref); }}>Claim 50% off</SlotButton>
           <p className="mt-2 text-xs text-muted">After 3 months your plan renews as Annual, prepaid at the full price. Cancel anytime before then from Account.</p>
         </Slot>
@@ -80,6 +86,7 @@ export default function Cancel() {
           <SlotButton id="account.cancel.keep" as={Link} href={accountHref} variant="secondary">Keep plan</SlotButton>
           <SlotButton id="account.cancel.confirm" variant="secondary" onClick={confirm}>Cancel plan</SlotButton>
         </Slot>
+        {keepOffer && <p className="mt-2 text-xs text-muted">The member price box above is ticked, so confirming keeps your plan running on the offer. Untick it to end your plan.</p>}
       </div>
     </main>
   );
