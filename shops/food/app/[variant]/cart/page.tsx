@@ -65,6 +65,7 @@ export default function CartPage() {
       <Progress current="cart" />
       <Slot id="cart.header.title" as="h1" className="ff-display ff-display--sm">Your cart</Slot>
       <Slot id="cart.promo.banner" className="ff-promo" />
+      <Slot id="cart.weather.notice" role="status" className="ff-promo">Heavy rain in your area: delivery partners are in high demand. A high demand fee may apply to ASAP orders.</Slot>
 
       <div className="ff-checkout__grid">
         <div className="ff-stack">

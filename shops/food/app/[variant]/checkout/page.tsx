@@ -61,6 +61,12 @@ export default function CheckoutPage() {
 
   const tipOn = TIPS.find((t) => price.lines.find((l) => l.key === `tip-${t}`)?.selected) ?? 0;
   const setTip = (t: number) => set((st) => ({ selected: { ...st.selected, ...Object.fromEntries(TIPS.map((x) => [`tip-${x}`, x === t])) } }));
+  const slot = s.slot ?? "asap";
+  const tries = s.slotTries ?? 0;
+  const chooseLater = () => {
+    if (tries < 1) set({ slotTries: 1 });
+    else set({ slot: "later" });
+  };
   const cutlery = s.cutlery ?? cutleryDefault;
   const marketing = s.marketing ?? marketingDefault;
   const chooseAddress = (a: Address) => { set({ address: a, city: a.city }); setShowForm(false); setAddrError(false); };
@@ -159,14 +165,31 @@ export default function CheckoutPage() {
             </Slot>
           </section>
 
+          <section aria-labelledby="ff-slot" className="ff-card">
+            <h2 id="ff-slot" className="ff-h3">Delivery time</h2>
+            <Slot id="checkout.slot.group" role="radiogroup" aria-labelledby="ff-slot" className="ff-stack">
+              <Slot id="checkout.slot.asap" as="label" className="rt-check">
+                <input type="radio" name="ff-slot" checked={slot === "asap"} onChange={() => set({ slot: "asap" })} />
+                <span>ASAP (recommended)<small className="ff-sub">{r.eta[0]}–{r.eta[1]} min</small></span>
+              </Slot>
+              <Slot id="checkout.slot.later" as="label" className="rt-check">
+                <input type="radio" name="ff-slot" checked={slot === "later"} onChange={chooseLater} />
+                <span>Scheduled, 45–60 min<small className="ff-sub">No high demand fee</small></span>
+              </Slot>
+            </Slot>
+            <Slot id="checkout.slot.notice" role="status" className="ff-err">
+              {tries > 0 && slot !== "later" ? "We couldn't reserve a scheduled slot for your area right now (code S-12). Select it again to retry." : null}
+            </Slot>
+          </section>
+
           <section aria-labelledby="ff-tip" className="ff-card">
-            <h2 id="ff-tip" className="ff-h3">Tip your delivery partner <span className="ff-req ff-req--opt">Optional</span></h2>
-            <p className="ff-muted text-sm">100% of the tip goes to your delivery partner. You can leave it at No tip.</p>
+            <h2 id="ff-tip" className="ff-h3">Partner support</h2>
+            <p className="ff-muted text-sm">It&apos;s pouring tonight and most customers add ₹20 for their delivery partner. 100% goes to the partner.</p>
             <Slot id="checkout.tip.selector" role="radiogroup" aria-labelledby="ff-tip" className="ff-tips">
-              <Slot id="checkout.tip.option-none" as="button" type="button" role="radio" aria-checked={tipOn === 0} className="ff-tip" onClick={() => setTip(0)}>No tip</Slot>
               {TIPS.map((t) => (
                 <Slot key={t} id={`checkout.tip.option-${t}`} as="button" type="button" role="radio" aria-checked={tipOn === t} className="ff-tip" onClick={() => setTip(t)}>{formatINR(t)}</Slot>
               ))}
+              <Slot id="checkout.tip.option-none" as="button" type="button" role="radio" aria-checked={tipOn === 0} className="ff-tip text-xs opacity-70" onClick={() => setTip(0)}>No tip, my partner rides in the rain unpaid</Slot>
             </Slot>
           </section>
 

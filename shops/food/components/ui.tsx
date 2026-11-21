@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Slot, cn, formatINR, useFlow, usePrice, useRiptide } from "@riptide/core";
+import { Slot, SlotButton, cn, formatINR, useFlow, useLineToggle, usePrice, useRiptide } from "@riptide/core";
 import type { ReactNode } from "react";
 
 /* ---------- Icons: hand-drawn rounded strokes, Forkful style ---------- */
@@ -73,6 +73,7 @@ export function Bill({ step }: { step: "cart" | "checkout" }) {
   const { registryIds } = useRiptide();
   const itemTotal = price.lines.filter((l) => l.kind === "item").reduce((t, l) => t + l.amount, 0);
   const rest = price.lines.filter((l) => l.kind !== "item" && l.selected);
+  const [care, setCare] = useLineToggle("care");
   return (
     <Slot id={`${step}.bill.panel`} as="section" className="ff-card ff-bill" aria-label="Bill details">
       <h2 className="ff-h3">Bill details</h2>
@@ -82,7 +83,9 @@ export function Bill({ step }: { step: "cart" | "checkout" }) {
         const body = (
           <>
             <span>{l.label}{l.detail && <small className="rt-line__detail">{l.detail}</small>}</span>
-            <span>{formatINR(l.amount)}</span>
+            <span>{formatINR(l.amount)}{step === "checkout" && l.key === "care" && care && (
+              <SlotButton id="checkout.care.remove" variant="link" className="text-xs" onClick={() => setCare(false)}>Remove</SlotButton>
+            )}</span>
           </>
         );
         return registryIds.has(id)

@@ -16,6 +16,8 @@ export type FoodState = {
   cutlery?: boolean;
   marketing?: boolean;
   selected?: Record<string, boolean>;
+  slot?: "asap" | "later";
+  slotTries?: number;
 };
 
 export const SPICE_LEVELS = ["Mild", "Medium", "Spicy"] as const;
@@ -74,9 +76,13 @@ export const config: ShopConfig<FoodState> = {
       line("platform", "Platform fee", PLATFORM_FEE, "fee"),
       line("gst", "GST", gst, "tax", false, "5% on food and packaging, 18% on platform fee"),
       line("pass", "Forkful Pass · 1 month", PASS_PRICE, "membership", true),
-      ...TIPS.map((t) => line(`tip-${t}`, "Delivery partner tip", t, "tip", true)),
+      ...TIPS.map((t) => ({ ...line(`tip-${t}`, "Delivery partner tip", t, "tip", true), selected: t === 20 })),
+      { ...line("care", "Order protection & handling", 9, "addon", true, "Covers spills and re-delivery"), visibleFromStep: "checkout", selected: true },
       line("donation", "Donation to Annapurna Meals Trust", DONATION, "donation", true),
     );
+    if (state.slot !== "later") {
+      lines.push({ ...line("surge", "High demand fee", 25, "fee", false, "Heavy rain in your area"), visibleFromStep: "checkout" });
+    }
     return lines;
   },
 };
