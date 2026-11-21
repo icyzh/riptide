@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Slot, formatINR, useFlow, useHydrated, useLineToggle, useRiptide, useSlotDefault } from "@riptide/core";
+import { Slot, SlotButton, formatINR, useFlow, useHydrated, useLineToggle, useRiptide, useSlotDefault } from "@riptide/core";
 import { artColor, productById, unitPrice, variantLabel } from "@/data/catalog";
 import { lineKey } from "@/shop.config";
 import { Art } from "@/components/Art";
@@ -16,7 +16,8 @@ export default function Review() {
   const { state, set } = useCart();
   const [express] = useLineToggle("express");
   const [nextday] = useLineToggle("nextday");
-  const optinDefault = useSlotDefault<boolean>("review.optin.marketing", false);
+  const [handling, setHandling] = useLineToggle("handling");
+  const optinDefault = useSlotDefault<boolean>("review.optin.marketing", true);
   const optin = state.optin ?? optinDefault;
 
   if (!hydrated) return <main data-riptide-step="review" className="cw-wrap pt-6" aria-busy><Skeleton className="h-6 w-80" /><div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]"><Skeleton className="h-96" /><Skeleton className="h-72" /></div></main>;
@@ -81,8 +82,9 @@ export default function Review() {
           <PriceSummary step="review" state={state} title="Order summary">
             <Slot id="review.optin.marketing" as="label" className="rt-check mt-5 text-sm">
               <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
-              <span>Send me offers and updates by email</span>
+              <span>Keep partner offers and order updates switched on<small className="block text-xs text-muted">Shares your email and order details with Cartwheel partners. Untick to stop.</small></span>
             </Slot>
+            {handling && <p className="mt-2 text-xs text-muted">Handling &amp; packaging is charged per order. <SlotButton id="review.handling.remove" as="button" type="button" variant="link" className="!min-h-0 !p-0 text-xs underline" onClick={() => setHandling(false)}>Remove</SlotButton></p>}
             <Slot id="review.terms.text" as="p" className="mt-3 text-xs text-muted">By continuing you agree to Cartwheel&apos;s Terms of Use and Returns Policy.</Slot>
             <Slot id="review.cta.pay" as={Link} href={flow.next("review")} className="rt-btn mt-4 w-full" variant="primary">Continue to payment</Slot>
           </PriceSummary>

@@ -91,8 +91,11 @@ export const config: ShopConfig<MarketState> = {
       { key: "giftwrap", label: "Gift wrap", amount: FEES.giftwrap, kind: "addon", visibleFromStep: "cart", optional: true, selected: false, detail: "All items, with a printed note" },
       { key: "express", label: hasPlusBenefits(state) ? "Express delivery (free with Plus)" : "Express delivery", amount: hasPlusBenefits(state) ? 0 : FEES.express, kind: "addon", visibleFromStep: "checkout", optional: true, selected: false, detail: "Upgrade from standard, arrives in 2 days" },
       { key: "nextday", label: "Next-day delivery", amount: FEES.nextday, kind: "addon", visibleFromStep: "checkout", optional: true, selected: false, detail: "Upgrade from standard, arrives tomorrow" },
+      { key: "dispatch", label: "Priority dispatch", amount: 59, kind: "addon", visibleFromStep: "checkout", optional: true, selected: !!state.address, detail: "Ships from the nearest hub, same day" },
       { key: "plus", label: "Cartwheel Plus, 1 year", amount: FEES.plus, kind: "membership", visibleFromStep: "checkout", optional: true, selected: false, detail: "Renews yearly at ₹999 until you cancel" },
     );
+    if (covered) lines.push({ key: "care", label: "Setup & care service", amount: 99, kind: "addon", visibleFromStep: "checkout", optional: true, selected: true, detail: "Device setup help and 6 months of care, incl. GST" });
+    lines.push({ key: "handling", label: "Handling & packaging", amount: 29, kind: "fee", visibleFromStep: "review", optional: true, selected: true, detail: "Per order, incl. GST" });
     return lines;
   },
 };

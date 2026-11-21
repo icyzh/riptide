@@ -44,6 +44,9 @@ export default function Checkout() {
   const [express, setExpress] = useLineToggle("express");
   const [nextday, setNextday] = useLineToggle("nextday");
   const [plus, setPlus] = useLineToggle("plus");
+  const [dispatch, setDispatch] = useLineToggle("dispatch");
+  const [care, setCare] = useLineToggle("care");
+  const [rechecked, setRechecked] = useState(false);
   const [plusDeclined, setPlusDeclined] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Partial<Address>>({});
@@ -66,8 +69,11 @@ export default function Checkout() {
   const items = state.cart.map((l) => productById(l.pid)).filter((p) => !!p);
   const canExpress = items.every((p) => p.delivery !== "standard");
   const canNextday = items.every((p) => p.delivery === "nextday");
-  const speed = nextday && canNextday ? "nextday" : express && canExpress ? "express" : "standard";
-  const choose = (s: "standard" | "express" | "nextday") => { setExpress(s === "express"); setNextday(s === "nextday"); };
+  const hasAddr = !!state.address;
+  const careLine = price.lines.find((l) => l.key === "care");
+  const speed: "priority" | "standard" | "express" | "nextday" = dispatch && hasAddr ? "priority" : nextday && canNextday ? "nextday" : express && canExpress ? "express" : "standard";
+  const choose = (s: "priority" | "standard" | "express" | "nextday") => { setDispatch(s === "priority"); setExpress(s === "express"); setNextday(s === "nextday"); };
+  const stdBlocked = hasAddr && !rechecked;
   const from = today ?? new Date("2026-10-24T00:00:00");
   const by = (d: number) => fmtDate(deliveryDate(from, d), { weekday: "long", day: "numeric", month: "short" });
   const fee = (k: string) => price.lines.find((l) => l.key === k)?.amount ?? 0;
@@ -89,7 +95,7 @@ export default function Checkout() {
     router.push(flow.next("checkout"));
   };
 
-  const opt = (s: "standard" | "express" | "nextday", id: string, title: string, sub: string, amount: string, disabled = false) => (
+  const opt = (s: "priority" | "standard" | "express" | "nextday", id: string, title: string, sub: string, amount: string, disabled = false) => (
     <Slot key={s} id={id} as="label" className={`cw-radio-card ${disabled ? "cursor-not-allowed opacity-55" : ""}`}>
       <input type="radio" name="speed" value={s} checked={speed === s} disabled={disabled} onChange={() => choose(s)} />
       <span className="flex-1"><strong className="block">{title}</strong><span className="text-sm text-muted">{sub}</span></span>
@@ -155,11 +161,27 @@ export default function Checkout() {
             <h2 id="speed-h" className="text-lg font-semibold">2. Delivery speed</h2>
             <p className="text-sm text-muted">Prices are added to the standard delivery fee{delivery ? ` (${delivery.amount === 0 ? "free on this order" : formatINR(delivery.amount)})` : ""}.</p>
             <Slot id="checkout.delivery.options" role="radiogroup" aria-labelledby="speed-h" className="mt-3 flex flex-col gap-2">
-              {opt("standard", "checkout.delivery.standard", "Standard", `4–6 days · arrives by ${by(6)}`, "No extra charge")}
+              {hasAddr && opt("priority", "checkout.delivery.priority", "Priority dispatch (recommended)", `Ships today from the nearest hub · arrives by ${by(3)}`, `+${formatINR(fee("dispatch"))}`)}
+              {opt("standard", "checkout.delivery.standard", "Standard", stdBlocked ? `Standard slots are full for PIN ${state.address?.pin} right now` : `4–6 days · arrives by ${by(6)}`, "No extra charge", stdBlocked)}
               {opt("express", "checkout.delivery.express", benefits ? "Express (free with Plus)" : "Express", canExpress ? `2 days · arrives by ${by(2)}` : "Not available for every item in your cart", `+${formatINR(fee("express"))}`, !canExpress)}
               {opt("nextday", "checkout.delivery.nextday", "Next-day", canNextday ? `Arrives tomorrow, ${by(1)}` : "Not available for every item in your cart", `+${formatINR(fee("nextday"))}`, !canNextday)}
             </Slot>
+            {stdBlocked && (
+              <p className="mt-2 text-xs text-muted">Slots refresh through the day. <SlotButton id="checkout.delivery.recheck" as="button" type="button" variant="link" className="!min-h-0 !p-0 text-xs underline" onClick={() => { setRechecked(true); choose("standard"); }}>Check again</SlotButton></p>
+            )}
           </section>
+
+          {careLine && (
+            <section className="cw-panel-flat p-5" aria-labelledby="care-h">
+              <h2 id="care-h" className="text-lg font-semibold">3. Setup &amp; care</h2>
+              <p className="text-sm text-muted">Setup help for your device and 6 months of care.</p>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <SlotButton id="checkout.care.keep" variant="primary" aria-pressed={care} onClick={() => setCare(true)}>Standard setup &amp; care (recommended){care ? " ✓" : ""}</SlotButton>
+                <SlotButton id="checkout.care.skip" as="button" type="button" variant="link" aria-pressed={!care} className="!min-h-0 !p-0 text-xs text-muted underline" onClick={() => setCare(false)}>I&apos;ll set it up myself</SlotButton>
+              </div>
+              <p className="mt-2 text-xs text-muted">Charged per order, shown in Price details.</p>
+            </section>
+          )}
 
           {!benefits && (
             <Slot id="checkout.plus.card" as="section" aria-labelledby="plus-h" className="cw-panel-flat overflow-hidden">
