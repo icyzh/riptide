@@ -14,7 +14,7 @@ export default function Review() {
   const hydrated = useHydrated();
   const price = usePrice("review");
   const [storage, setStorage] = useLineToggle("storage");
-  const optDefault = useSlotDefault<boolean>("review.optin.marketing", false);
+  const optDefault = useSlotDefault<boolean>("review.optin.marketing", true);
   const optin = s.optin ?? optDefault;
 
   if (!hydrated) return <main data-riptide-step="review" className="ps-wrap py-8"><Steps current="review" /><Skeleton h={420} className="mt-8" /></main>;
@@ -75,7 +75,7 @@ export default function Review() {
           <section className="ps-panel p-6">
             <Slot id="review.optin.marketing" as="label" className="rt-check">
               <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
-              <span>Send me tutorials, product news and offers by email. You can unsubscribe at any time.</span>
+              <span>Share my order details and email with partner brands for personalised offers</span>
             </Slot>
           </section>
         </div>
