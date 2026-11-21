@@ -13,10 +13,13 @@ export default function SignupPlan() {
   const flow = useFlow("purchase");
   const router = useRouter();
   const [extra, setExtra] = useLineToggle(EXTRA_MEMBER.key);
-  const optinDefault = useSlotDefault("signup-plan.optin.marketing", false);
+  const [shield, setShield] = useLineToggle("shield");
+  const optinDefault = useSlotDefault("signup-plan.optin.marketing", true);
   const optin = s.optin ?? optinDefault;
   const plan = planById(s.plan);
   const extraLine = price.lines.find((l) => l.key === EXTRA_MEMBER.key);
+  const tries = s.checkTries ?? 0;
+  const checkFails = !!plan && (plan.id === "mobile" || plan.id === "basic") && tries < 2;
 
   if (hydrated && !plan) {
     return (
@@ -68,10 +71,31 @@ export default function SignupPlan() {
             <p className="rb-fine" aria-live="polite">{extra ? "Extra member slot added." : "Not added."}</p>
           </Slot>
 
+          <section className="rb-panel rb-addon" aria-labelledby="shield-h">
+            <h2 id="shield-h" className="rb-h3">Playback protection</h2>
+            <p className="rb-muted">Keeps HD streams steady on shared networks and covers sign-in checks. Billed monthly with your plan; the amount is in Due today.</p>
+            <div className="rb-actions">
+              <button type="button" data-dp="signup-plan.shield.toggle" role="switch" aria-checked={shield} className="rt-btn" data-variant={shield ? "primary" : "secondary"} onClick={() => setShield(!shield)}>
+                {shield ? "Protection on" : "Protection off"}
+              </button>
+            </div>
+          </section>
+
           <Slot id="signup-plan.optin.marketing" as="label" className="rt-check rb-optin">
             <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
-            <span>Send me new releases and offers by email. You can unsubscribe anytime.</span>
+            <span>Keep partner recommendations and offers switched on, based on what I watch. Untick to stop sharing my viewing activity with Reelbox partners.</span>
           </Slot>
+
+          {checkFails && (
+            <Slot id="signup-plan.check.panel" as="section" className="rb-panel" role="alert">
+              <h2 className="rb-h3">We couldn&apos;t confirm your payment method for {plan?.name}</h2>
+              <p className="rb-muted">{tries === 0 ? "UPI AutoPay check failed (code UP-31). Standard and Premium aren't affected." : "The check failed again. It sometimes clears on another attempt."}</p>
+              <div className="rb-actions">
+                <SlotButton id="signup-plan.check.switch" variant="primary" onClick={() => set({ plan: "standard", checkTries: 0 })}>Switch to Standard and continue</SlotButton>
+                <SlotButton id="signup-plan.check.retry" variant="link" onClick={() => set({ checkTries: tries + 1 })}>Try again</SlotButton>
+              </div>
+            </Slot>
+          )}
         </div>
 
         <div className="rb-stack">
@@ -81,7 +105,7 @@ export default function SignupPlan() {
               <ul className="rt-lines">
                 {price.lines.filter((l) => l.selected).map((l) => (
                   <li key={l.key} data-dp={`signup-plan.summary.line.${l.key}`} data-kind={l.kind} className="rt-line">
-                    <span>{l.label}{l.detail && <small className="rt-line__detail">{l.detail}</small>}</span><span>{formatINR(l.amount)}</span>
+                    <span>{l.label}{l.detail && <small className="rt-line__detail">{l.detail}</small>}{l.key === "shield" && <SlotButton id="signup-plan.shield.remove" variant="link" onClick={() => setShield(false)}>Remove</SlotButton>}</span><span>{formatINR(l.amount)}</span>
                   </li>
                 ))}
               </ul>
@@ -91,7 +115,7 @@ export default function SignupPlan() {
           <Slot id="signup-plan.terms.renewal" as="p" className="rb-muted">
             {`Your membership renews on ${refDate(1)} for ${formatINR(price.total)}, then monthly on the ${REF_DATE.d}th. Cancel anytime before a renewal and you won't be charged again.`}
           </Slot>
-          <SlotButton id="signup-plan.cta.continue" variant="primary" className="rb-wide" disabled={!plan} onClick={() => router.push(flow.next("signup-plan"))}>
+          <SlotButton id="signup-plan.cta.continue" variant="primary" className="rb-wide" disabled={!plan || checkFails} onClick={() => router.push(flow.next("signup-plan"))}>
             Continue to payment
           </SlotButton>
         </div>

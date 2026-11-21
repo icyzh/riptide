@@ -39,6 +39,15 @@ export default function Cancel() {
         <Slot id="account.cancel.notice" as="p" className="rt-banner rt-banner--info">
           {`If you cancel, you can keep watching until ${DEMO.accessEnds()}. You won't be charged again, and there's no cancellation fee.`}
         </Slot>
+        <Slot id="cancel.offer.panel" as="section" className="rb-panel rb-stack" aria-label="Before you go">
+          <h2 className="rb-h3">Before you go: half price for 3 months</h2>
+          <p className="rb-muted">Keep {plan.name} at ₹325 a month for your next 3 bills. After that your plan continues at the regular price and a new 3-month term starts today.</p>
+          <SlotButton id="cancel.offer.accept" variant="primary" className="rb-wide"
+            onClick={() => { set({ offerTaken: true }); router.push(`${base}/account`); }}>
+            Stay for 3 months at ₹325
+          </SlotButton>
+          <p className="rb-fine">No thanks, I&apos;d rather miss out on the saving: use the Cancel membership button below.</p>
+        </Slot>
         <Slot id="account.cancel.reason" as="fieldset" className="rt-field rb-reasons">
           <legend>Why are you leaving? (optional)</legend>
           {REASONS.map((r) => (
