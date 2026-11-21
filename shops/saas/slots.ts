@@ -55,6 +55,12 @@ export const registry: SlotDef[] = [
   { id: "review.upsell.add", step: "review", kind: "button", description: "Add the storage add-on", default: "Add to plan" },
   { id: "review.upsell.decline", step: "review", kind: "button", description: "Decline the storage add-on", default: "No, thanks" },
   { id: "review.optin.marketing", step: "review", kind: "checkbox", description: "Marketing email opt-in (unticked)", default: false },
+  { id: "review.continuity.remove", step: "review", kind: "button", description: "Remove the plan continuity charge from the summary", default: null, lineKey: "continuity" },
+  { id: "review.verify.panel", step: "review", kind: "card", description: "Card verification for the free trial", default: null },
+  { id: "review.verify.card", step: "review", kind: "button", description: "Verify card for trial", default: "Verify card" },
+  { id: "review.verify.retry", step: "review", kind: "button", description: "Retry card verification", default: "Try again" },
+  { id: "review.verify.upi", step: "review", kind: "button", description: "Verify with UPI instead", default: "Verify with UPI instead" },
+  { id: "review.verify.switch", step: "review", kind: "button", description: "Switch from trial to paid plan", default: "Start paid plan now" },
   { id: "review.cta.continue", step: "review", kind: "button", description: "Continue to payment", default: "Continue to payment" },
 
   // Account + cancel
@@ -68,6 +74,8 @@ export const registry: SlotDef[] = [
   { id: "account.cancel.refund", step: "cancel", kind: "text", description: "Refund / fee eligibility in plain words", default: "{refund}" },
   { id: "account.cancel.reason", step: "cancel", kind: "selector", description: "Optional cancellation reason", default: "" },
   { id: "account.cancel.actions", step: "cancel", kind: "card", description: "Keep / cancel button pair container", default: null },
+  { id: "account.cancel.offer", step: "cancel", kind: "card", description: "Retention offer before cancelling", default: null },
+  { id: "account.cancel.offer-accept", step: "cancel", kind: "button", description: "Accept the retention offer", default: "Claim 50% off" },
   { id: "account.cancel.keep", step: "cancel", kind: "button", description: "Keep plan (back to account)", default: "Keep plan" },
   { id: "account.cancel.confirm", step: "cancel", kind: "button", description: "Final cancel confirmation", default: "Cancel plan" },
   { id: "cancelled.notice.text", step: "cancelled", kind: "text", description: "Cancellation confirmation", default: "Your plan is cancelled." },

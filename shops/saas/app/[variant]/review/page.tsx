@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Slot, SlotButton, formatINR, useFlow, useLineToggle, usePrice, useRiptide, useSession, useSlotDefault } from "@riptide/core";
+import { Slot, SlotButton, formatINR, useFlow, useLineToggle, usePrice, useRiptide, useSession } from "@riptide/core";
 import { DEMO_USER, STORAGE_PRICE, billingTerms, gstOf, planById, planLabel, termById, trialTerms } from "@/catalog";
 import type { SaasState } from "@/shop.config";
 import { AppIcon } from "@/components/Art";
@@ -14,8 +14,8 @@ export default function Review() {
   const hydrated = useHydrated();
   const price = usePrice("review");
   const [storage, setStorage] = useLineToggle("storage");
-  const optDefault = useSlotDefault<boolean>("review.optin.marketing", false);
-  const optin = s.optin ?? optDefault;
+  const [cont, setCont] = useLineToggle("continuity");
+  const optin = s.optin ?? true;
 
   if (!hydrated) return <main data-riptide-step="review" className="ps-wrap py-8"><Steps current="review" /><Skeleton h={420} className="mt-8" /></main>;
   if (!s.plan || !s.term) return <main data-riptide-step="review" className="ps-wrap py-8"><Steps current="review" /><div className="mt-8"><NoPlan /></div></main>;
@@ -25,6 +25,8 @@ export default function Review() {
   const recurring = price.lines.filter((l) => l.selected && l.kind !== "discount").reduce((t, l) => t + l.amount, 0);
   const chargeText = `${formatINR(recurring)} incl. GST`;
   const st = STORAGE_PRICE;
+  const tries = s.verifyTries ?? 0;
+  const blocked = trial && !s.verified;
 
   return (
     <main data-riptide-step="review" className="ps-wrap py-8">
@@ -72,17 +74,46 @@ export default function Review() {
             )}
           </Slot>
 
+          {trial && (
+            <Slot id="review.verify.panel" as="section" className="ps-panel p-6" aria-label="Verify payment method">
+              <h2 className="text-lg font-bold">Verify your card (₹0 hold)</h2>
+              {s.verified ? (
+                <p className="mt-2 text-sm">Verified. Nothing is due today.</p>
+              ) : tries === 0 ? (
+                <div className="mt-3">
+                  <p className="text-sm text-muted">We place a ₹0 hold to confirm your payment method before the trial starts.</p>
+                  <SlotButton id="review.verify.card" variant="primary" className="mt-3" onClick={() => set({ verifyTries: 1 })}>Verify card</SlotButton>
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <p className="text-sm">Verification failed: payment gateway timeout (code PG-504). Paid plans are not affected.</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <SlotButton id="review.verify.switch" variant="primary" onClick={() => set({ mode: "buy" })}>Start paid plan now · {chargeText}</SlotButton>
+                    <SlotButton id="review.verify.retry" variant="link" onClick={() => set({ verifyTries: tries + 1, verified: tries + 1 >= 2 })}>Try again</SlotButton>
+                    <SlotButton id="review.verify.upi" variant="link" onClick={() => set({ verified: true })}>Verify with UPI instead</SlotButton>
+                  </div>
+                </div>
+              )}
+            </Slot>
+          )}
+
           <section className="ps-panel p-6">
             <Slot id="review.optin.marketing" as="label" className="rt-check">
               <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
-              <span>Send me tutorials, product news and offers by email. You can unsubscribe at any time.</span>
+              <span>Keep me posted: tutorials, product news and selected partner offers by email and SMS. Untick to stop. Your email and usage preferences are shared with Prism partners for this.</span>
             </Slot>
           </section>
         </div>
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
           <Summary step="review">
-            <Slot id="review.cta.continue" as={Link} href={flow.next("review")} className="rt-btn mt-2 w-full" variant="primary">Continue to payment</Slot>
+            {!trial && (
+              <SlotButton id="review.continuity.remove" variant="link" className="self-start text-xs text-muted" aria-pressed={cont} onClick={() => setCont(!cont)}>
+                {cont ? "Remove plan continuity" : "Add plan continuity back"}
+              </SlotButton>
+            )}
+            <Slot id="review.cta.continue" as={Link} href={flow.next("review")} className="rt-btn mt-2 w-full" variant="primary" aria-disabled={blocked || undefined} onClick={(e: React.MouseEvent) => { if (blocked) e.preventDefault(); }}>Continue to payment</Slot>
+            {blocked && <p className="text-xs text-muted">Verify your payment method above to continue.</p>}
             <p className="text-xs text-muted">You&apos;ll choose UPI, card, netbanking or a wallet on the next page.</p>
           </Summary>
         </div>
