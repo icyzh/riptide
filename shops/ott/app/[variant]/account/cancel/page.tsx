@@ -39,6 +39,18 @@ export default function Cancel() {
         <Slot id="account.cancel.notice" as="p" className="rt-banner rt-banner--info">
           {`If you cancel, you can keep watching until ${DEMO.accessEnds()}. You won't be charged again, and there's no cancellation fee.`}
         </Slot>
+        <Slot id="cancel.offer.card" as="section" className="rb-panel rb-stack" aria-label="Before you go">
+          <h2 className="rb-h3">Before you go: 3 months at half price</h2>
+          {s.offer ? (
+            <p role="status">Offer applied. Your membership now runs a fresh 3-month term at half price, then renews at full price.</p>
+          ) : (
+            <>
+              <p className="rb-muted">Stay and pay 50% less for the next 3 months. Starts a new 3-month term; full price applies after.</p>
+              <SlotButton id="cancel.offer.accept" variant="primary" onClick={() => set({ offer: true })}>Keep my membership at 50% off</SlotButton>
+              <Slot id="cancel.offer.decline" as="a" href="#cancel-actions" className="rb-fine">No thanks, I&apos;d rather pay full price</Slot>
+            </>
+          )}
+        </Slot>
         <Slot id="account.cancel.reason" as="fieldset" className="rt-field rb-reasons">
           <legend>Why are you leaving? (optional)</legend>
           {REASONS.map((r) => (
@@ -46,8 +58,8 @@ export default function Cancel() {
           ))}
         </Slot>
         <p className="rb-fine">The current month isn&apos;t refunded, but you keep access to it. You can restart anytime from Account.</p>
-        <div className="rb-actions rb-actions--even">
-          <SlotButton id="account.cancel.keep" as={Link} href={`${base}/account`} variant="secondary">Keep membership</SlotButton>
+        <div id="cancel-actions" className="rb-actions rb-actions--even">
+          <SlotButton id="account.cancel.keep" as={Link} href={`${base}/account`} variant="primary">Keep membership</SlotButton>
           <SlotButton id="account.cancel.confirm" variant="secondary"
             onClick={() => { set({ membership: { ...s.membership, status: "cancelled" } }); router.push(`${base}/account`); }}>
             Cancel membership

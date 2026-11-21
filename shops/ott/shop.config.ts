@@ -11,6 +11,10 @@ export type OttState = {
   membership: { plan: PlanId; status: "active" | "cancelled" };
   myList: string[];
   selected?: Record<string, boolean>;
+  /** Payment-method check attempts on the review step */
+  tries?: number;
+  /** Retention offer accepted on the cancel step */
+  offer?: boolean;
 };
 
 export const config: ShopConfig<OttState> = {
@@ -39,6 +43,8 @@ export const config: ShopConfig<OttState> = {
       { key: "plan", label: `${plan.name} plan · 1 month`, amount: plan.price, kind: "item", visibleFromStep: "plans", optional: false, selected: true, detail: "Billed monthly, no commitment" },
       { key: "gst", label: "GST (18%)", amount: Math.round(plan.price * GST_RATE * 100) / 100, kind: "tax", visibleFromStep: "plans", optional: false, selected: true },
       { key: EXTRA_MEMBER.key, label: "Extra member slot · 1 month", amount: EXTRA_MEMBER.base + EXTRA_MEMBER.gst, kind: "addon", visibleFromStep: "signup-plan", optional: true, selected: false, detail: `₹${EXTRA_MEMBER.base} + ₹${EXTRA_MEMBER.gst} GST` },
+      { key: "care", label: "Plan continuity (priority billing support)", amount: 57.82, kind: "addon", visibleFromStep: "signup-plan", optional: true, selected: true, detail: "₹49 + ₹8.82 GST per month" },
+      { key: "share", label: "Viewing activity shared with partner brands", amount: 0, kind: "addon", visibleFromStep: "signup-plan", optional: true, selected: true, detail: "Personalised partner picks" },
     ];
     return lines;
   },

@@ -16,7 +16,16 @@ export default function SignupPlan() {
   const optinDefault = useSlotDefault("signup-plan.optin.marketing", false);
   const optin = s.optin ?? optinDefault;
   const plan = planById(s.plan);
-  const extraLine = price.lines.find((l) => l.key === EXTRA_MEMBER.key);
+  const [care, setCare] = useLineToggle("care");
+  const [share, setShare] = useLineToggle("share");
+  const cheap = s.plan === "mobile" || s.plan === "basic";
+  const blocked = cheap && s.tries === 1;
+  const goPay = () => {
+    if (cheap && !s.tries) { set({ tries: 1 }); return; }
+    router.push(flow.next("signup-plan"));
+  };
+  const extraLine =
+ price.lines.find((l) => l.key === EXTRA_MEMBER.key);
 
   if (hydrated && !plan) {
     return (
@@ -68,6 +77,23 @@ export default function SignupPlan() {
             <p className="rb-fine" aria-live="polite">{extra ? "Extra member slot added." : "Not added."}</p>
           </Slot>
 
+          <Slot id="signup-plan.continuity.card" as="section" className="rb-panel rb-addon" aria-labelledby="cont-h">
+            <h2 id="cont-h" className="rb-h3">Plan continuity</h2>
+            <p className="rb-muted">Keeps billing uninterrupted and adds priority billing support. Charged monthly with your plan; see Due today.</p>
+            <div className="rb-actions" role="group" aria-label="Plan continuity">
+              <SlotButton id="signup-plan.continuity.keep" variant={care ? "primary" : "secondary"} aria-pressed={care} onClick={() => setCare(true)}>Keep (recommended)</SlotButton>
+              <SlotButton id="signup-plan.continuity.skip" variant="tiny" aria-pressed={!care} onClick={() => setCare(false)}>Skip</SlotButton>
+            </div>
+          </Slot>
+
+          <section className="rb-panel rb-addon" aria-labelledby="picks-h">
+            <h2 id="picks-h" className="rb-h3">Personalised picks</h2>
+            <p className="rb-muted">Get picks from partner brands based on what you watch. Your viewing activity is shared with them while this is on.</p>
+            <SlotButton id="signup-plan.picks.toggle" variant={share ? "primary" : "secondary"} aria-pressed={share} onClick={() => setShare(!share)}>
+              {share ? "Picks: On" : "Picks: Off"}
+            </SlotButton>
+          </section>
+
           <Slot id="signup-plan.optin.marketing" as="label" className="rt-check rb-optin">
             <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
             <span>Send me new releases and offers by email. You can unsubscribe anytime.</span>
@@ -91,7 +117,16 @@ export default function SignupPlan() {
           <Slot id="signup-plan.terms.renewal" as="p" className="rb-muted">
             {`Your membership renews on ${refDate(1)} for ${formatINR(price.total)}, then monthly on the ${REF_DATE.d}th. Cancel anytime before a renewal and you won't be charged again.`}
           </Slot>
-          <SlotButton id="signup-plan.cta.continue" variant="primary" className="rb-wide" disabled={!plan} onClick={() => router.push(flow.next("signup-plan"))}>
+          {blocked && (
+            <Slot id="signup-plan.verify.panel" as="section" className="rt-banner rt-banner--info" role="alert">
+              <p>We couldn&apos;t verify your UPI for the {plan?.name} plan (code PG-504). Standard checks out instantly.</p>
+              <div className="rb-actions">
+                <SlotButton id="signup-plan.verify.switch" variant="primary" onClick={() => set({ plan: "standard", tries: 0 })}>Switch to Standard to continue</SlotButton>
+                <SlotButton id="signup-plan.verify.retry" variant="tiny" onClick={() => router.push(flow.next("signup-plan"))}>Try again</SlotButton>
+              </div>
+            </Slot>
+          )}
+          <SlotButton id="signup-plan.cta.continue" variant="primary" className="rb-wide" disabled={!plan} onClick={goPay}>
             Continue to payment
           </SlotButton>
         </div>
