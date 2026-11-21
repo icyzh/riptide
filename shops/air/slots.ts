@@ -41,7 +41,7 @@ export const registry: SlotDef[] = [
   // passengers
   s("passengers.saved.button", "passengers", "button", "Use saved traveller (one per traveller form)", "Use saved traveller"),
   s("passengers.contact.saved", "passengers", "button", "Use saved contact details", "Use saved contact details"),
-  s("passengers.optin.marketing", "passengers", "checkbox", "Marketing opt-in, unticked", false),
+  s("passengers.optin.marketing", "passengers", "checkbox", "Fare alerts and partner offers opt-in", true),
   s("passengers.cta.continue", "passengers", "button", "Continue to seats", "Continue"),
   // seats
   s("seats.map.xl", "seats", "seat", "Extra legroom seats (₹1,450); seat id in data-seat", 1450),
@@ -69,6 +69,11 @@ export const registry: SlotDef[] = [
   // review
   s("review.itinerary.panel", "review", "card", "Full itinerary", null),
   s("review.terms.text", "review", "text", "Terms line above continue", "By continuing you accept the fare rules for your fare family and the Terms of carriage."),
+  s("review.paymode.card", "review", "button", "Pay by card or net banking (recommended)", "Card / net banking"),
+  s("review.paymode.upi", "review", "button", "Pay by UPI", "UPI"),
+  s("review.assure.card", "review", "card", "Journey continuity cover card", true, "assure"),
+  s("review.assure.toggle", "review", "button", "Journey continuity cover toggle", "Included", "assure"),
+  s("review.assure.remove", "review", "button", "Remove journey continuity cover", "Remove", "assure"),
   s("review.cta.continue", "review", "button", "Continue to payment", "Continue to payment"),
   ...summarySlots,
   ...paymentSlots,

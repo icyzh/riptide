@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Slot, SlotButton, formatINR, useFlow, useHydrated, usePrice, useSession } from "@riptide/core";
+import { Slot, SlotButton, formatINR, useFlow, useHydrated, useLineToggle, usePrice, useSession } from "@riptide/core";
 import { ADDONS, FARES, cityById, cityName, dur, fmtDate, hhmm, seatPrice, type AddonKey } from "@/lib/air";
 import { BookingShell, FlightLine, Loading, NeedEarlier } from "@/components/Booking";
 import { paxCount, segmentsOf, type AirState } from "@/shop.config";
 
 export default function Review() {
-  const [st] = useSession<AirState>();
+  const [st, setSt] = useSession<AirState>();
+  const [assured, setAssured] = useLineToggle("assure");
   const hydrated = useHydrated();
   const router = useRouter();
   const flow = useFlow("purchase");
@@ -65,6 +66,20 @@ export default function Review() {
           </div>
         </div>
         <p className="sk-fine"><Link href={flow.href("passengers")} className="rt-link">Edit travellers</Link> · <Link href={flow.href("seats")} className="rt-link">Edit seats</Link> · <Link href={flow.href("addons")} className="rt-link">Edit add-ons</Link> · {segs.map(([, f]) => `${cityName(f.from)} → ${cityName(f.to)}`).join(" · ")}</p>
+      </Slot>
+      <section className="sk-card" aria-label="Payment preference">
+        <h2 className="sk-h3">Payment preference</h2>
+        <div className="sk-addon__btns">
+          <SlotButton id="review.paymode.card" variant="secondary" aria-pressed={st.paymode !== "upi"} onClick={() => setSt({ paymode: "card" })}>Card / net banking (recommended)</SlotButton>
+          <SlotButton id="review.paymode.upi" variant="secondary" aria-pressed={st.paymode === "upi"} onClick={() => setSt({ paymode: "upi" })}>UPI</SlotButton>
+        </div>
+        <p className="sk-fine">Instant confirmation and refunds to source. Processing charges are shown in the fare summary.</p>
+      </section>
+      <Slot id="review.assure.card" as="section" className="sk-card" aria-label="Journey continuity">
+        <h2 className="sk-h3">Journey continuity</h2>
+        <p className="sk-muted">Rebooking help if your flight is disrupted, priority re-accommodation and lounge-style updates. {assured ? "Applied to this booking." : "Not applied."}</p>
+        <SlotButton id="review.assure.toggle" variant="primary" aria-pressed={assured} onClick={() => setAssured(true)}>{assured ? "Included" : "Include continuity"}</SlotButton>
+        <p className="sk-fine">Charged per traveller per flight, see fare summary. <Slot id="review.assure.remove" as="button" type="button" className="rt-link" onClick={() => setAssured(false)}>Remove</Slot></p>
       </Slot>
       <Slot id="review.terms.text" as="p" className="sk-fine">
         By continuing you accept the fare rules for your fare family and the Terms of carriage.

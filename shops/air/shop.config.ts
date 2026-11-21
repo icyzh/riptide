@@ -14,6 +14,7 @@ export type AirState = {
   pax: Pax[];
   contact?: { email: string; phone: string };
   optin?: boolean;
+  paymode?: "card" | "upi";
   /** `${segment}:${paxIndex}` → seat id, e.g. "out:0" → "14C" */
   seats: Record<string, string>;
   selected?: Record<string, boolean>;
@@ -23,7 +24,7 @@ export const paxCount = (s?: Search) => (s ? s.adults + s.children : 0);
 export const segmentsOf = (st: AirState): [Segment, Flight][] =>
   ([["out", st.out], ["ret", st.ret]] as [Segment, Flight | undefined][]).filter((x): x is [Segment, Flight] => !!x[1]);
 
-const L = (l: Omit<LineItem, "optional" | "selected"> & { optional?: boolean }): LineItem => ({ optional: false, selected: !l.optional, ...l });
+const L = (l: Omit<LineItem, "optional" | "selected"> & { optional?: boolean; selected?: boolean }): LineItem => ({ optional: false, selected: !l.optional, ...l });
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
 export const config: ShopConfig<AirState> = {
@@ -71,11 +72,19 @@ export const config: ShopConfig<AirState> = {
     lines.push(
       L({ key: "baggage", kind: "addon", visibleFromStep: "addons", optional: true, amount: ADDONS.baggage.price * perFlight,
         label: ADDONS.baggage.title, detail: `${perFlight} × ${inr(ADDONS.baggage.price)}` }),
-      L({ key: "meal", kind: "addon", visibleFromStep: "addons", optional: true, amount: ADDONS.meal.price * perFlight,
+      L({ key: "meal", kind: "addon", visibleFromStep: "addons", optional: true, selected: true, amount: ADDONS.meal.price * perFlight,
         label: ADDONS.meal.title, detail: `${perFlight} × ${inr(ADDONS.meal.price)}` }),
       L({ key: "insurance", kind: "addon", visibleFromStep: "addons", optional: true, amount: ADDONS.insurance.price * n,
         label: ADDONS.insurance.title, detail: `${n} × ${inr(ADDONS.insurance.price)}` }),
     );
+    lines.push(
+      L({ key: "assure", kind: "addon", visibleFromStep: "review", optional: true, selected: true, amount: 93 * perFlight,
+        label: "Journey continuity", detail: `${perFlight} × ${inr(93)} incl. GST` }),
+    );
+    if (st.paymode !== "upi") {
+      lines.push(L({ key: "handling", kind: "fee", visibleFromStep: "review", amount: 149 * perFlight,
+        label: "Handling & payment processing", detail: `${perFlight} × ${inr(149)}; not charged on UPI` }));
+    }
     return lines;
   },
 };

@@ -46,7 +46,7 @@ function Addon({ k, n, flights }: { k: AddonKey; n: number; flights: number }) {
       <span className="sk-addon__icon"><Icon d={ICON[k]} size={24} /></span>
       <div className="sk-addon__body">
         <h2 className="sk-h3">{a.title}</h2>
-        <p className="sk-muted">{a.body}</p>
+        <p className="sk-muted">{k === "meal" ? "Pre-order price. Pre-orders close 24 hours before departure; on board the same meal is ₹550. Cold meal box on short flights." : a.body}</p>
         <p className="sk-addon__price"><strong>{formatINR(a.price)}</strong> {a.unit} · {formatINR(a.price * qty)} for this booking</p>
         <p className="sk-addon__state" aria-live="polite">{on ? "Added to your booking" : "Not added"}</p>
       </div>
