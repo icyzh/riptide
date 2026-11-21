@@ -14,6 +14,7 @@ export default function Review() {
   const hydrated = useHydrated();
   const price = usePrice("review");
   const [storage, setStorage] = useLineToggle("storage");
+  const [handling, setHandling] = useLineToggle("handling");
   const optDefault = useSlotDefault<boolean>("review.optin.marketing", false);
   const optin = s.optin ?? optDefault;
 
@@ -25,6 +26,8 @@ export default function Review() {
   const recurring = price.lines.filter((l) => l.selected && l.kind !== "discount").reduce((t, l) => t + l.amount, 0);
   const chargeText = `${formatINR(recurring)} incl. GST`;
   const st = STORAGE_PRICE;
+  const tries = s.checkTries ?? 0;
+  const blocked = trial && tries < 2;
 
   return (
     <main data-riptide-step="review" className="ps-wrap py-8">
@@ -54,8 +57,26 @@ export default function Review() {
             </p>
           </section>
 
-          <Slot id="review.upsell.storage" as="section" className="ps-panel p-6" aria-label="Optional add-on">
-            <p className="ps-eyebrow">Optional add-on</p>
+          {trial && (
+            <Slot id="review.verify.card" as="section" className="ps-panel p-6" aria-label="Card check">
+              <p className="ps-eyebrow">Trial activation</p>
+              <h2 className="mt-2 text-xl font-bold">Verify your card (₹0 hold)</h2>
+              {tries === 0 && <p className="mt-2 text-sm text-muted">We place a ₹0 hold to confirm your card before the trial starts.</p>}
+              {tries === 1 && (
+                <p className="mt-2 text-sm">We couldn&apos;t verify your card for the trial (code PG-504, gateway timeout). Paid plans don&apos;t need this check. You can also try the check again.</p>
+              )}
+              {tries >= 2 && <p className="mt-2 text-sm">Card verified. You can continue.</p>}
+              {tries < 2 && (
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <SlotButton id="review.verify.switch" variant="primary" onClick={() => set({ mode: "buy" })}>Start paid plan now</SlotButton>
+                  <SlotButton id="review.verify.retry" variant="muted" onClick={() => set({ checkTries: tries + 1 })}>{tries === 0 ? "Verify card" : "Try again"}</SlotButton>
+                </div>
+              )}
+            </Slot>
+          )}
+
+          <Slot id="review.upsell.storage" as="section" className="ps-panel p-6" aria-label="Plan extras">
+            <p className="ps-eyebrow">Included with your order</p>
             <h2 className="mt-2 text-xl font-bold">Stock assets &amp; +1 TB cloud storage</h2>
             <p className="mt-2 text-sm text-muted">
               120,000 licensed photos, vectors and video clips inside every app, plus an extra 1 TB of Prism Cloud.
@@ -65,9 +86,9 @@ export default function Review() {
               <p className="mt-4 text-sm">Add-ons aren&apos;t part of the free trial. You can add this from Account after your first payment.</p>
             ) : (
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <SlotButton id="review.upsell.add" variant="secondary" aria-pressed={storage} onClick={() => setStorage(true)}>{storage ? "✓ Added to plan" : "Add to plan"}</SlotButton>
-                <SlotButton id="review.upsell.decline" variant="secondary" aria-pressed={!storage} onClick={() => setStorage(false)}>No, thanks</SlotButton>
-                <span className="text-sm text-muted">{storage ? "Added. It's in your order summary." : "Not added."}</span>
+                <SlotButton id="review.upsell.add" variant="primary" aria-pressed={storage} onClick={() => setStorage(true)}>{storage ? "✓ Included (recommended)" : "Add to plan"}</SlotButton>
+                <SlotButton id="review.upsell.decline" variant="muted" className="!text-xs !px-1 underline text-muted" aria-pressed={!storage} onClick={() => setStorage(false)}>No, thanks</SlotButton>
+                <span className="text-sm text-muted">{storage ? "Included. Priced in your order summary." : "Not included."}</span>
               </div>
             )}
           </Slot>
@@ -82,7 +103,14 @@ export default function Review() {
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
           <Summary step="review">
-            <Slot id="review.cta.continue" as={Link} href={flow.next("review")} className="rt-btn mt-2 w-full" variant="primary">Continue to payment</Slot>
+            {blocked
+              ? <Slot id="review.cta.continue" as="button" type="button" disabled className="rt-btn mt-2 w-full" variant="primary">Continue to payment</Slot>
+              : <Slot id="review.cta.continue" as={Link} href={flow.next("review")} className="rt-btn mt-2 w-full" variant="primary">Continue to payment</Slot>}
+            {handling && !trial && (
+              <p className="text-xs text-muted">Licence activation &amp; handling is charged once per order.{" "}
+                <SlotButton id="review.handling.remove" variant="muted" className="!inline !p-0 !min-h-0 !text-xs underline" onClick={() => setHandling(false)}>Remove</SlotButton>
+              </p>
+            )}
             <p className="text-xs text-muted">You&apos;ll choose UPI, card, netbanking or a wallet on the next page.</p>
           </Summary>
         </div>

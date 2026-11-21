@@ -15,6 +15,8 @@ export type SaasState = {
   seats?: number;
   mode?: Mode;
   optin?: boolean;
+  /** Card check attempts on the trial path. */
+  checkTries?: number;
   /** The demo account's existing subscription (seeded active so the cancel flow works without buying). */
   sub: Subscription;
 };
@@ -64,8 +66,13 @@ export const config: ShopConfig<SaasState> = {
       const st = STORAGE_PRICE * (isPrepaid(s.term) ? 12 : 1);
       lines.push({
         key: "storage", kind: "addon", label: "Stock assets & +1 TB cloud storage", amount: round2(st + gstOf(st)),
-        visibleFromStep: "plans", optional: true, selected: false,
+        visibleFromStep: "plans", optional: true, selected: true,
         detail: `${formatINR(st)}/${per} + ${formatINR(gstOf(st))} GST, billed with your plan`,
+      });
+      lines.push({
+        key: "handling", kind: "fee", label: "Licence activation & handling", amount: 57.82,
+        visibleFromStep: "review", optional: true, selected: true,
+        detail: "₹49 + ₹8.82 GST, one time",
       });
     }
     return lines;

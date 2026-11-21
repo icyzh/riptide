@@ -19,6 +19,7 @@ export default function Cancel() {
   const charge = chargeOf(useQuote(sub, "payment"));
   const defReason = useSlotDefault<string>("account.cancel.reason", "");
   const [reason, setReason] = useState<string | null>(null);
+  const [offer, setOffer] = useState<"open" | "taken" | "closed">("open");
   const picked = reason ?? defReason;
   const accountHref = flow.href(flow.steps[0].path);
 
@@ -45,6 +46,29 @@ export default function Cancel() {
       <div className="mx-auto mt-6 max-w-2xl">
         <h1 className="text-4xl font-extrabold">Cancel {planLabel(sub)}?</h1>
         <p className="mt-2 text-muted">{termById(sub.term)?.name} · cancelling takes effect as soon as you confirm below.</p>
+
+        {offer !== "closed" && (
+          <Slot id="cancel.offer.panel" as="section" className="ps-panel mt-6 border-2 border-accent p-6" aria-label="Before you go">
+            <p className="ps-eyebrow">Before you go</p>
+            {offer === "open" ? (
+              <>
+                <h2 className="mt-2 text-xl font-bold">Stay for 3 months at 50% off</h2>
+                <p className="mt-2 text-sm">Keep every app and your Prism Cloud files. Cancelling now means losing your discount eligibility and your synced files after 90 days.</p>
+                <div className="mt-4 flex flex-col items-start gap-3">
+                  <SlotButton id="cancel.offer.accept" variant="primary" className="w-full" onClick={() => setOffer("taken")}>Keep my plan at 50% off</SlotButton>
+                  <SlotButton id="cancel.offer.decline" variant="muted" className="!text-xs !px-1 underline text-muted" onClick={() => setOffer("closed")}>No thanks, continue cancelling</SlotButton>
+                </div>
+                <p className="mt-3 text-[0.7rem] text-muted">Offer applies to the next 3 payments and starts a new 12-month term, renewing at {formatINR(charge)} per month after that.</p>
+              </>
+            ) : (
+              <>
+                <h2 className="mt-2 text-xl font-bold">Offer applied</h2>
+                <p className="mt-2 text-sm">Your plan continues on a new 12-month term. Your offer ends after 3 payments.</p>
+                <Link href={accountHref} className="rt-link mt-3 inline-block text-sm">Back to account</Link>
+              </>
+            )}
+          </Slot>
+        )}
 
         <Slot id="account.cancel.summary" as="section" className="ps-panel mt-6 p-6" aria-label="What happens when you cancel">
           <h2 className="text-lg font-bold">What happens</h2>
