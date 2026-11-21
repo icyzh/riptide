@@ -44,6 +44,7 @@ export default function Checkout() {
   const [express, setExpress] = useLineToggle("express");
   const [nextday, setNextday] = useLineToggle("nextday");
   const [plus, setPlus] = useLineToggle("plus");
+  const [handling, setHandling] = useLineToggle("handling");
   const [plusDeclined, setPlusDeclined] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Partial<Address>>({});
@@ -159,6 +160,13 @@ export default function Checkout() {
               {opt("express", "checkout.delivery.express", benefits ? "Express (free with Plus)" : "Express", canExpress ? `2 days · arrives by ${by(2)}` : "Not available for every item in your cart", `+${formatINR(fee("express"))}`, !canExpress)}
               {opt("nextday", "checkout.delivery.nextday", "Next-day", canNextday ? `Arrives tomorrow, ${by(1)}` : "Not available for every item in your cart", `+${formatINR(fee("nextday"))}`, !canNextday)}
             </Slot>
+            <div className="mt-4 flex items-start gap-3 border-t border-line pt-4">
+              <Slot id="checkout.handling.toggle" as="button" type="button" role="switch" aria-checked={handling} aria-label="Handling & packaging" className="rt-btn" data-variant="secondary" onClick={() => setHandling(!handling)}>{handling ? "On" : "Off"}</Slot>
+              <div className="text-sm">
+                <strong className="block">Handling &amp; packaging</strong>
+                <Slot id="checkout.handling.details" as="p" className="text-xs text-muted">Protective packing and careful handling. {formatINR(fee("handling"))} per order, shown in your price details.</Slot>
+              </div>
+            </div>
           </section>
 
           {!benefits && (

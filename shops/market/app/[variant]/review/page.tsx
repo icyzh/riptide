@@ -16,6 +16,8 @@ export default function Review() {
   const { state, set } = useCart();
   const [express] = useLineToggle("express");
   const [nextday] = useLineToggle("nextday");
+  const [secure, setSecure] = useLineToggle("secure");
+  const partners = state.partners ?? true;
   const optinDefault = useSlotDefault<boolean>("review.optin.marketing", false);
   const optin = state.optin ?? optinDefault;
 
@@ -79,10 +81,18 @@ export default function Review() {
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
           <PriceSummary step="review" state={state} title="Order summary">
+            <p className="mt-3 text-xs text-muted">
+              {secure ? "Secure delivery charge is included in your total. " : "Secure delivery charge removed. "}
+              <Slot id="review.secure.remove" as="button" type="button" className="rt-link text-xs" onClick={() => setSecure(!secure)}>{secure ? "Remove" : "Add back"}</Slot>
+            </p>
             <Slot id="review.optin.marketing" as="label" className="rt-check mt-5 text-sm">
               <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
               <span>Send me offers and updates by email</span>
             </Slot>
+            <div className="mt-3 flex items-start gap-3 text-sm">
+              <Slot id="review.partners.share" as="button" type="button" role="switch" aria-checked={partners} aria-label="Personalised offers from Cartwheel partners" className="rt-btn" data-variant="secondary" onClick={() => set({ partners: !partners })}>{partners ? "On" : "Off"}</Slot>
+              <span>Personalised offers from Cartwheel partners<small className="block text-xs text-muted">Shares your name, email and order history with partner brands.</small></span>
+            </div>
             <Slot id="review.terms.text" as="p" className="mt-3 text-xs text-muted">By continuing you agree to Cartwheel&apos;s Terms of Use and Returns Policy.</Slot>
             <Slot id="review.cta.pay" as={Link} href={flow.next("review")} className="rt-btn mt-4 w-full" variant="primary">Continue to payment</Slot>
           </PriceSummary>

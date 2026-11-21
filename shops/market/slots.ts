@@ -101,6 +101,8 @@ export const registry: SlotDef[] = [
   s("checkout.delivery.standard", "checkout", "selector", "Standard delivery option (default)", true),
   s("checkout.delivery.express", "checkout", "selector", "Express delivery option (not selected)", false, "express"),
   s("checkout.delivery.nextday", "checkout", "selector", "Next-day delivery option (not selected)", false, "nextday"),
+  s("checkout.handling.toggle", "checkout", "selector", "Handling & packaging switch (starts on)", true, "handling"),
+  s("checkout.handling.details", "checkout", "text", "Handling & packaging explanation and amount"),
   s("checkout.plus.card", "checkout", "card", "Cartwheel Plus membership offer (optional, not selected)", false, "plus"),
   s("checkout.plus.terms", "checkout", "text", "Plus price, renewal date and cancellation terms"),
   s("checkout.plus.add", "checkout", "button", "Plus accept button", "Add Plus"),
@@ -115,6 +117,8 @@ export const registry: SlotDef[] = [
   s("review.summary.panel", "review", "card", "Final price breakdown"),
   s("review.summary.total", "review", "total", "Order total", "{total}"),
   s("review.optin.marketing", "review", "checkbox", "Marketing email opt-in (unticked)", false),
+  s("review.secure.remove", "review", "button", "Small link to remove the secure delivery charge (starts included)", true, "secure"),
+  s("review.partners.share", "review", "selector", "Partner offers sharing switch (starts on)", true),
   s("review.terms.text", "review", "text", "Terms line above the button", "By continuing you agree to Cartwheel's Terms of Use and Returns Policy."),
   s("review.cta.pay", "review", "button", "Continue to payment", "Continue to payment"),
 

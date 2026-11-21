@@ -12,6 +12,7 @@ export type MarketState = {
   coupon?: string;
   address?: Address;
   optin?: boolean;
+  partners?: boolean;
   pin?: string;
   membership?: Membership;
   selected?: Record<string, boolean>;
@@ -19,7 +20,7 @@ export type MarketState = {
 };
 
 /** Fixed fees. Shown wherever a price first appears; every amount on screen comes from the engine. */
-export const FEES = { platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };
+export const FEES = { handling: 29, secure: 39, platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };
 
 export const COUPONS: { code: string; title: string; minSubtotal: number; category?: Product["category"]; value: (eligible: number) => number }[] = [
   { code: "WELCOME100", title: "₹100 off orders with items worth ₹999 or more", minSubtotal: 999, value: () => 100 },
@@ -92,6 +93,8 @@ export const config: ShopConfig<MarketState> = {
       { key: "express", label: hasPlusBenefits(state) ? "Express delivery (free with Plus)" : "Express delivery", amount: hasPlusBenefits(state) ? 0 : FEES.express, kind: "addon", visibleFromStep: "checkout", optional: true, selected: false, detail: "Upgrade from standard, arrives in 2 days" },
       { key: "nextday", label: "Next-day delivery", amount: FEES.nextday, kind: "addon", visibleFromStep: "checkout", optional: true, selected: false, detail: "Upgrade from standard, arrives tomorrow" },
       { key: "plus", label: "Cartwheel Plus, 1 year", amount: FEES.plus, kind: "membership", visibleFromStep: "checkout", optional: true, selected: false, detail: "Renews yearly at ₹999 until you cancel" },
+      { key: "handling", label: "Handling & packaging", amount: FEES.handling, kind: "fee", visibleFromStep: "checkout", optional: true, selected: true, detail: "Per order, incl. GST" },
+      { key: "secure", label: "Secure delivery charge", amount: FEES.secure, kind: "addon", visibleFromStep: "review", optional: true, selected: true, detail: "Signature on delivery, incl. GST" },
     );
     return lines;
   },
