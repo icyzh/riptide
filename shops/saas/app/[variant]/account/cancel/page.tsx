@@ -46,6 +46,15 @@ export default function Cancel() {
         <h1 className="text-4xl font-extrabold">Cancel {planLabel(sub)}?</h1>
         <p className="mt-2 text-muted">{termById(sub.term)?.name} · cancelling takes effect as soon as you confirm below.</p>
 
+        <Slot id="cancel.offer.panel" as="section" className="ps-panel mt-6 p-6" aria-label="Before you go">
+          <h2 className="text-lg font-bold">Before you go: 50% off for 3 months</h2>
+          <p className="mt-2 text-sm">Stay on and pay half price. Don&apos;t lose the apps your projects depend on.</p>
+          <SlotButton id="cancel.offer.accept" variant="primary" className="mt-4" onClick={() => { set({ sub: { ...sub, startedOn: TODAY, scheduled: undefined } }); router.push(accountHref); }}>Keep my discount</SlotButton>
+          <Slot id="cancel.offer.terms" as="p" className="mt-3 text-xs text-muted">
+            Half price for 3 months, then {formatINR(charge)} per billing cycle. Accepting restarts your plan term from {fmtDate(TODAY)}. Scroll down to cancel instead.
+          </Slot>
+        </Slot>
+
         <Slot id="account.cancel.summary" as="section" className="ps-panel mt-6 p-6" aria-label="What happens when you cancel">
           <h2 className="text-lg font-bold">What happens</h2>
           <ul className="mt-3 flex flex-col gap-2 text-[0.95rem]">

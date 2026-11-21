@@ -55,6 +55,14 @@ export const registry: SlotDef[] = [
   { id: "review.upsell.add", step: "review", kind: "button", description: "Add the storage add-on", default: "Add to plan" },
   { id: "review.upsell.decline", step: "review", kind: "button", description: "Decline the storage add-on", default: "No, thanks" },
   { id: "review.optin.marketing", step: "review", kind: "checkbox", description: "Marketing email opt-in (unticked)", default: false },
+  { id: "review.fees.care", step: "review", kind: "fee", description: "Billing continuity & priority handling line (starts included)", default: true, lineKey: "care" },
+  { id: "review.care.remove", step: "review", kind: "button", description: "Remove the continuity & handling line", default: "Remove", lineKey: "care" },
+  { id: "review.share.partners", step: "review", kind: "checkbox", description: "Personalised recommendations switch (shares usage and email with partner studios; starts on)", default: true },
+  { id: "review.verify.card", step: "review", kind: "card", description: "Card check panel", default: null },
+  { id: "review.verify.start", step: "review", kind: "button", description: "Verify card for the trial (trial only)", default: "Verify card" },
+  { id: "review.verify.switch", step: "review", kind: "button", description: "Switch to the paid plan after a failed check (trial only)", default: "Start paid plan now" },
+  { id: "review.verify.retry", step: "review", kind: "button", description: "Retry the card check (trial only)", default: "Try again" },
+  { id: "review.verify.upi", step: "review", kind: "button", description: "Verify with UPI instead (trial only)", default: "Verify with UPI" },
   { id: "review.cta.continue", step: "review", kind: "button", description: "Continue to payment", default: "Continue to payment" },
 
   // Account + cancel
@@ -70,6 +78,9 @@ export const registry: SlotDef[] = [
   { id: "account.cancel.actions", step: "cancel", kind: "card", description: "Keep / cancel button pair container", default: null },
   { id: "account.cancel.keep", step: "cancel", kind: "button", description: "Keep plan (back to account)", default: "Keep plan" },
   { id: "account.cancel.confirm", step: "cancel", kind: "button", description: "Final cancel confirmation", default: "Cancel plan" },
+  { id: "cancel.offer.panel", step: "cancel", kind: "card", description: "Retention offer panel", default: null },
+  { id: "cancel.offer.accept", step: "cancel", kind: "button", description: "Accept the 3-month half-price offer (restarts term)", default: "Keep my discount" },
+  { id: "cancel.offer.terms", step: "cancel", kind: "text", description: "Offer terms", default: "{offer terms}" },
   { id: "cancelled.notice.text", step: "cancelled", kind: "text", description: "Cancellation confirmation", default: "Your plan is cancelled." },
 
   ...paymentSlots,

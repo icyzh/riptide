@@ -15,6 +15,11 @@ export type SaasState = {
   seats?: number;
   mode?: Mode;
   optin?: boolean;
+  /** Personalised-recommendations sharing switch on review (undefined = default on). */
+  share?: boolean;
+  /** Card check attempts on the trial path. */
+  vTries?: number;
+  vOk?: boolean;
   /** The demo account's existing subscription (seeded active so the cancel flow works without buying). */
   sub: Subscription;
 };
@@ -66,6 +71,11 @@ export const config: ShopConfig<SaasState> = {
         key: "storage", kind: "addon", label: "Stock assets & +1 TB cloud storage", amount: round2(st + gstOf(st)),
         visibleFromStep: "plans", optional: true, selected: false,
         detail: `${formatINR(st)}/${per} + ${formatINR(gstOf(st))} GST, billed with your plan`,
+      });
+      lines.push({
+        key: "care", kind: "fee", label: "Billing continuity & priority handling", amount: round2(39 + gstOf(39)),
+        visibleFromStep: "review", optional: true, selected: true,
+        detail: `${formatINR(39)} + ${formatINR(gstOf(39))} GST, per billing cycle`,
       });
     }
     return lines;
