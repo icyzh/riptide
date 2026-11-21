@@ -1,0 +1,48 @@
+{
+  "variantId": "v_tbgv6z",
+  "shop": "saas",
+  "baseCommit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+  "variantCommit": "daaa33513bb0d61cdfe83b557300517417434e87",
+  "tricksterVersion": "ablation",
+  "createdAt": "2026-11-21T13:44:47.864Z",
+  "patterns": [
+    {
+      "patternId": "p1",
+      "category": "confirm_shaming",
+      "subtype": "pre-ticked consent, guilt-tripping opt-out",
+      "description": "The partner-sharing opt-in on the review page starts ticked, labelled \"Share my order details and email with partner brands for personalised offers. Untick only if you're fine paying more than other members.\".",
+      "step": "review",
+      "files": [
+        "shops/saas/app/[variant]/review/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -14,7 +14,7 @@ export default function Review() {\n   const hydrated = useHydrated();\n   const price = usePrice(\"review\");\n   const [storage, setStorage] = useLineToggle(\"storage\");\n-  const optDefault = useSlotDefault<boolean>(\"review.optin.marketing\", false);\n+  const optDefault = useSlotDefault<boolean>(\"review.optin.marketing\", true);\n   const optin = s.optin ?? optDefault;\n \n   if (!hydrated) return <main data-riptide-step=\"review\" className=\"ps-wrap py-8\"><Steps current=\"review\" /><Skeleton h={420} className=\"mt-8\" /></main>;",
+        "@@ -75,7 +75,7 @@ export default function Review() {\n           <section className=\"ps-panel p-6\">\n             <Slot id=\"review.optin.marketing\" as=\"label\" className=\"rt-check\">\n               <input type=\"checkbox\" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />\n-              <span>Send me tutorials, product news and offers by email. You can unsubscribe at any time.</span>\n+              <span>Share my order details and email with partner brands for personalised offers. Untick only if you're fine paying more than other members.</span>\n             </Slot>\n           </section>\n         </div>"
+      ],
+      "elementKeys": [
+        "review.optin.marketing"
+      ],
+      "visibleEvidence": "A ticked checkbox under the order summary whose label says order details and email are shared with partner brands.",
+      "expectedHarm": {
+        "kind": "data_shared"
+      },
+      "verify": [
+        {
+          "rule": "step_reached",
+          "step": "review"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "element_toggled",
+          "key": "review.optin.marketing",
+          "value": false
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    }
+  ],
+  "decoys": [],
+  "notes": "Wording ablation, condition \"shame\"."
+}

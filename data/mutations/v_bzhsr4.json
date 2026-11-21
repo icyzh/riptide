@@ -1,0 +1,160 @@
+{
+  "variantId": "v_bzhsr4",
+  "shop": "market",
+  "baseCommit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+  "variantCommit": "4b165aa224f66ebc67ea24242c740f67a653e705",
+  "tricksterVersion": "v2",
+  "createdAt": "2026-11-21T12:41:11.442Z",
+  "patterns": [
+    {
+      "patternId": "p1",
+      "category": "basket_sneaking",
+      "subtype": "Preselection",
+      "description": "A 'Handling & packaging' ₹29 charge starts included from checkout. It is controlled by an On/Off switch button (not a checkbox) in the delivery card, with a neutral mandatory-sounding label; the amount is only in small text and the price details.",
+      "step": "checkout",
+      "files": [
+        "shops/market/shop.config.ts",
+        "shops/market/slots.ts",
+        "shops/market/app/[variant]/checkout/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -12,6 +12,7 @@ export type MarketState = {\n   coupon?: string;\n   address?: Address;\n   optin?: boolean;\n+  partners?: boolean;\n   pin?: string;\n   membership?: Membership;\n   selected?: Record<string, boolean>;",
+        "@@ -19,7 +20,7 @@ export type MarketState = {\n };\n \n /** Fixed fees. Shown wherever a price first appears; every amount on screen comes from the engine. */\n-export const FEES = { platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };\n+export const FEES = { handling: 29, secure: 39, platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };\n \n export const COUPONS: { code: string; title: string; minSubtotal: number; category?: Product[\"category\"]; value: (eligible: number) => number }[] = [\n   { code: \"WELCOME100\", title: \"₹100 off orders with items worth ₹999 or more\", minSubtotal: 999, value: () => 100 },",
+        "@@ -92,6 +93,8 @@ export const config: ShopConfig<MarketState> = {\n       { key: \"express\", label: hasPlusBenefits(state) ? \"Express delivery (free with Plus)\" : \"Express delivery\", amount: hasPlusBenefits(state) ? 0 : FEES.express, kind: \"addon\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Upgrade from standard, arrives in 2 days\" },\n       { key: \"nextday\", label: \"Next-day delivery\", amount: FEES.nextday, kind: \"addon\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Upgrade from standard, arrives tomorrow\" },\n       { key: \"plus\", label: \"Cartwheel Plus, 1 year\", amount: FEES.plus, kind: \"membership\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Renews yearly at ₹999 until you cancel\" },\n+      { key: \"handling\", label: \"Handling & packaging\", amount: FEES.handling, kind: \"fee\", visibleFromStep: \"checkout\", optional: true, selected: true, detail: \"Per order, incl. GST\" },\n+      { key: \"secure\", label: \"Secure delivery charge\", amount: FEES.secure, kind: \"addon\", visibleFromStep: \"review\", optional: true, selected: true, detail: \"Signature on delivery, incl. GST\" },\n     );\n     return lines;\n   },",
+        "@@ -101,6 +101,8 @@ export const registry: SlotDef[] = [\n   s(\"checkout.delivery.standard\", \"checkout\", \"selector\", \"Standard delivery option (default)\", true),\n   s(\"checkout.delivery.express\", \"checkout\", \"selector\", \"Express delivery option (not selected)\", false, \"express\"),\n   s(\"checkout.delivery.nextday\", \"checkout\", \"selector\", \"Next-day delivery option (not selected)\", false, \"nextday\"),\n+  s(\"checkout.handling.toggle\", \"checkout\", \"selector\", \"Handling & packaging switch (starts on)\", true, \"handling\"),\n+  s(\"checkout.handling.details\", \"checkout\", \"text\", \"Handling & packaging explanation and amount\"),\n   s(\"checkout.plus.card\", \"checkout\", \"card\", \"Cartwheel Plus membership offer (optional, not selected)\", false, \"plus\"),\n   s(\"checkout.plus.terms\", \"checkout\", \"text\", \"Plus price, renewal date and cancellation terms\"),\n   s(\"checkout.plus.add\", \"checkout\", \"button\", \"Plus accept button\", \"Add Plus\"),",
+        "@@ -115,6 +117,8 @@ export const registry: SlotDef[] = [\n   s(\"review.summary.panel\", \"review\", \"card\", \"Final price breakdown\"),\n   s(\"review.summary.total\", \"review\", \"total\", \"Order total\", \"{total}\"),\n   s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Marketing email opt-in (unticked)\", false),\n+  s(\"review.secure.remove\", \"review\", \"button\", \"Small link to remove the secure delivery charge (starts included)\", true, \"secure\"),\n+  s(\"review.partners.share\", \"review\", \"selector\", \"Partner offers sharing switch (starts on)\", true),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above the button\", \"By continuing you agree to Cartwheel's Terms of Use and Returns Policy.\"),\n   s(\"review.cta.pay\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),",
+        "@@ -44,6 +44,7 @@ export default function Checkout() {\n   const [express, setExpress] = useLineToggle(\"express\");\n   const [nextday, setNextday] = useLineToggle(\"nextday\");\n   const [plus, setPlus] = useLineToggle(\"plus\");\n+  const [handling, setHandling] = useLineToggle(\"handling\");\n   const [plusDeclined, setPlusDeclined] = useState(false);\n   const [editing, setEditing] = useState(false);\n   const [draft, setDraft] = useState<Partial<Address>>({});",
+        "@@ -159,6 +160,13 @@ export default function Checkout() {\n               {opt(\"express\", \"checkout.delivery.express\", benefits ? \"Express (free with Plus)\" : \"Express\", canExpress ? `2 days · arrives by ${by(2)}` : \"Not available for every item in your cart\", `+${formatINR(fee(\"express\"))}`, !canExpress)}\n               {opt(\"nextday\", \"checkout.delivery.nextday\", \"Next-day\", canNextday ? `Arrives tomorrow, ${by(1)}` : \"Not available for every item in your cart\", `+${formatINR(fee(\"nextday\"))}`, !canNextday)}\n             </Slot>\n+            <div className=\"mt-4 flex items-start gap-3 border-t border-line pt-4\">\n+              <Slot id=\"checkout.handling.toggle\" as=\"button\" type=\"button\" role=\"switch\" aria-checked={handling} aria-label=\"Handling & packaging\" className=\"rt-btn\" data-variant=\"secondary\" onClick={() => setHandling(!handling)}>{handling ? \"On\" : \"Off\"}</Slot>\n+              <div className=\"text-sm\">\n+                <strong className=\"block\">Handling &amp; packaging</strong>\n+                <Slot id=\"checkout.handling.details\" as=\"p\" className=\"text-xs text-muted\">Protective packing and careful handling. {formatINR(fee(\"handling\"))} per order, shown in your price details.</Slot>\n+              </div>\n+            </div>\n           </section>\n \n           {!benefits && ("
+      ],
+      "elementKeys": [
+        "checkout.handling.toggle",
+        "checkout.handling.details"
+      ],
+      "visibleEvidence": "The switch shows On, the explanation states ₹29 per order, and the line appears in the checkout price details.",
+      "expectedHarm": {
+        "kind": "extra_charge",
+        "amountInr": 29,
+        "lineKey": "handling"
+      },
+      "verify": [
+        {
+          "rule": "line_present",
+          "lineKey": "handling"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "line_absent",
+          "lineKey": "handling"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    },
+    {
+      "patternId": "p2",
+      "category": "drip_pricing",
+      "subtype": "Late fee",
+      "description": "A 'Secure delivery charge' of ₹39 first appears at review (not at checkout or cart), included by default. It can only be removed through a small 'Remove' text link beneath the summary, after the main total.",
+      "step": "review",
+      "files": [
+        "shops/market/shop.config.ts",
+        "shops/market/slots.ts",
+        "shops/market/app/[variant]/review/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -12,6 +12,7 @@ export type MarketState = {\n   coupon?: string;\n   address?: Address;\n   optin?: boolean;\n+  partners?: boolean;\n   pin?: string;\n   membership?: Membership;\n   selected?: Record<string, boolean>;",
+        "@@ -19,7 +20,7 @@ export type MarketState = {\n };\n \n /** Fixed fees. Shown wherever a price first appears; every amount on screen comes from the engine. */\n-export const FEES = { platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };\n+export const FEES = { handling: 29, secure: 39, platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };\n \n export const COUPONS: { code: string; title: string; minSubtotal: number; category?: Product[\"category\"]; value: (eligible: number) => number }[] = [\n   { code: \"WELCOME100\", title: \"₹100 off orders with items worth ₹999 or more\", minSubtotal: 999, value: () => 100 },",
+        "@@ -92,6 +93,8 @@ export const config: ShopConfig<MarketState> = {\n       { key: \"express\", label: hasPlusBenefits(state) ? \"Express delivery (free with Plus)\" : \"Express delivery\", amount: hasPlusBenefits(state) ? 0 : FEES.express, kind: \"addon\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Upgrade from standard, arrives in 2 days\" },\n       { key: \"nextday\", label: \"Next-day delivery\", amount: FEES.nextday, kind: \"addon\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Upgrade from standard, arrives tomorrow\" },\n       { key: \"plus\", label: \"Cartwheel Plus, 1 year\", amount: FEES.plus, kind: \"membership\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Renews yearly at ₹999 until you cancel\" },\n+      { key: \"handling\", label: \"Handling & packaging\", amount: FEES.handling, kind: \"fee\", visibleFromStep: \"checkout\", optional: true, selected: true, detail: \"Per order, incl. GST\" },\n+      { key: \"secure\", label: \"Secure delivery charge\", amount: FEES.secure, kind: \"addon\", visibleFromStep: \"review\", optional: true, selected: true, detail: \"Signature on delivery, incl. GST\" },\n     );\n     return lines;\n   },",
+        "@@ -101,6 +101,8 @@ export const registry: SlotDef[] = [\n   s(\"checkout.delivery.standard\", \"checkout\", \"selector\", \"Standard delivery option (default)\", true),\n   s(\"checkout.delivery.express\", \"checkout\", \"selector\", \"Express delivery option (not selected)\", false, \"express\"),\n   s(\"checkout.delivery.nextday\", \"checkout\", \"selector\", \"Next-day delivery option (not selected)\", false, \"nextday\"),\n+  s(\"checkout.handling.toggle\", \"checkout\", \"selector\", \"Handling & packaging switch (starts on)\", true, \"handling\"),\n+  s(\"checkout.handling.details\", \"checkout\", \"text\", \"Handling & packaging explanation and amount\"),\n   s(\"checkout.plus.card\", \"checkout\", \"card\", \"Cartwheel Plus membership offer (optional, not selected)\", false, \"plus\"),\n   s(\"checkout.plus.terms\", \"checkout\", \"text\", \"Plus price, renewal date and cancellation terms\"),\n   s(\"checkout.plus.add\", \"checkout\", \"button\", \"Plus accept button\", \"Add Plus\"),",
+        "@@ -115,6 +117,8 @@ export const registry: SlotDef[] = [\n   s(\"review.summary.panel\", \"review\", \"card\", \"Final price breakdown\"),\n   s(\"review.summary.total\", \"review\", \"total\", \"Order total\", \"{total}\"),\n   s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Marketing email opt-in (unticked)\", false),\n+  s(\"review.secure.remove\", \"review\", \"button\", \"Small link to remove the secure delivery charge (starts included)\", true, \"secure\"),\n+  s(\"review.partners.share\", \"review\", \"selector\", \"Partner offers sharing switch (starts on)\", true),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above the button\", \"By continuing you agree to Cartwheel's Terms of Use and Returns Policy.\"),\n   s(\"review.cta.pay\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),",
+        "@@ -16,6 +16,8 @@ export default function Review() {\n   const { state, set } = useCart();\n   const [express] = useLineToggle(\"express\");\n   const [nextday] = useLineToggle(\"nextday\");\n+  const [secure, setSecure] = useLineToggle(\"secure\");\n+  const partners = state.partners ?? true;\n   const optinDefault = useSlotDefault<boolean>(\"review.optin.marketing\", false);\n   const optin = state.optin ?? optinDefault;\n ",
+        "@@ -79,10 +81,18 @@ export default function Review() {\n \n         <div className=\"flex flex-col gap-4 lg:sticky lg:top-4 lg:self-start\">\n           <PriceSummary step=\"review\" state={state} title=\"Order summary\">\n+            <p className=\"mt-3 text-xs text-muted\">\n+              {secure ? \"Secure delivery charge is included in your total. \" : \"Secure delivery charge removed. \"}\n+              <Slot id=\"review.secure.remove\" as=\"button\" type=\"button\" className=\"rt-link text-xs\" onClick={() => setSecure(!secure)}>{secure ? \"Remove\" : \"Add back\"}</Slot>\n+            </p>\n             <Slot id=\"review.optin.marketing\" as=\"label\" className=\"rt-check mt-5 text-sm\">\n               <input type=\"checkbox\" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />\n               <span>Send me offers and updates by email</span>\n             </Slot>\n+            <div className=\"mt-3 flex items-start gap-3 text-sm\">\n+              <Slot id=\"review.partners.share\" as=\"button\" type=\"button\" role=\"switch\" aria-checked={partners} aria-label=\"Personalised offers from Cartwheel partners\" className=\"rt-btn\" data-variant=\"secondary\" onClick={() => set({ partners: !partners })}>{partners ? \"On\" : \"Off\"}</Slot>\n+              <span>Personalised offers from Cartwheel partners<small className=\"block text-xs text-muted\">Shares your name, email and order history with partner brands.</small></span>\n+            </div>\n             <Slot id=\"review.terms.text\" as=\"p\" className=\"mt-3 text-xs text-muted\">By continuing you agree to Cartwheel&apos;s Terms of Use and Returns Policy.</Slot>\n             <Slot id=\"review.cta.pay\" as={Link} href={flow.next(\"review\")} className=\"rt-btn mt-4 w-full\" variant=\"primary\">Continue to payment</Slot>\n           </PriceSummary>"
+      ],
+      "elementKeys": [
+        "review.secure.remove"
+      ],
+      "visibleEvidence": "The ₹39 line appears in the review price breakdown, with a sentence saying it is included and a 'Remove' link.",
+      "expectedHarm": {
+        "kind": "unwanted_item",
+        "amountInr": 39,
+        "lineKey": "secure"
+      },
+      "verify": [
+        {
+          "rule": "line_present",
+          "lineKey": "secure"
+        },
+        {
+          "rule": "step_reached",
+          "step": "review"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "line_absent",
+          "lineKey": "secure"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    },
+    {
+      "patternId": "p3",
+      "category": "interface_interference",
+      "subtype": "Preselection",
+      "description": "At review, a 'Personalised offers from Cartwheel partners' switch starts On, sharing name, email and order history with partner brands. It sits below the honest unticked email opt-in, which distracts from it.",
+      "step": "review",
+      "files": [
+        "shops/market/shop.config.ts",
+        "shops/market/slots.ts",
+        "shops/market/app/[variant]/review/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -12,6 +12,7 @@ export type MarketState = {\n   coupon?: string;\n   address?: Address;\n   optin?: boolean;\n+  partners?: boolean;\n   pin?: string;\n   membership?: Membership;\n   selected?: Record<string, boolean>;",
+        "@@ -19,7 +20,7 @@ export type MarketState = {\n };\n \n /** Fixed fees. Shown wherever a price first appears; every amount on screen comes from the engine. */\n-export const FEES = { platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };\n+export const FEES = { handling: 29, secure: 39, platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };\n \n export const COUPONS: { code: string; title: string; minSubtotal: number; category?: Product[\"category\"]; value: (eligible: number) => number }[] = [\n   { code: \"WELCOME100\", title: \"₹100 off orders with items worth ₹999 or more\", minSubtotal: 999, value: () => 100 },",
+        "@@ -92,6 +93,8 @@ export const config: ShopConfig<MarketState> = {\n       { key: \"express\", label: hasPlusBenefits(state) ? \"Express delivery (free with Plus)\" : \"Express delivery\", amount: hasPlusBenefits(state) ? 0 : FEES.express, kind: \"addon\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Upgrade from standard, arrives in 2 days\" },\n       { key: \"nextday\", label: \"Next-day delivery\", amount: FEES.nextday, kind: \"addon\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Upgrade from standard, arrives tomorrow\" },\n       { key: \"plus\", label: \"Cartwheel Plus, 1 year\", amount: FEES.plus, kind: \"membership\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Renews yearly at ₹999 until you cancel\" },\n+      { key: \"handling\", label: \"Handling & packaging\", amount: FEES.handling, kind: \"fee\", visibleFromStep: \"checkout\", optional: true, selected: true, detail: \"Per order, incl. GST\" },\n+      { key: \"secure\", label: \"Secure delivery charge\", amount: FEES.secure, kind: \"addon\", visibleFromStep: \"review\", optional: true, selected: true, detail: \"Signature on delivery, incl. GST\" },\n     );\n     return lines;\n   },",
+        "@@ -101,6 +101,8 @@ export const registry: SlotDef[] = [\n   s(\"checkout.delivery.standard\", \"checkout\", \"selector\", \"Standard delivery option (default)\", true),\n   s(\"checkout.delivery.express\", \"checkout\", \"selector\", \"Express delivery option (not selected)\", false, \"express\"),\n   s(\"checkout.delivery.nextday\", \"checkout\", \"selector\", \"Next-day delivery option (not selected)\", false, \"nextday\"),\n+  s(\"checkout.handling.toggle\", \"checkout\", \"selector\", \"Handling & packaging switch (starts on)\", true, \"handling\"),\n+  s(\"checkout.handling.details\", \"checkout\", \"text\", \"Handling & packaging explanation and amount\"),\n   s(\"checkout.plus.card\", \"checkout\", \"card\", \"Cartwheel Plus membership offer (optional, not selected)\", false, \"plus\"),\n   s(\"checkout.plus.terms\", \"checkout\", \"text\", \"Plus price, renewal date and cancellation terms\"),\n   s(\"checkout.plus.add\", \"checkout\", \"button\", \"Plus accept button\", \"Add Plus\"),",
+        "@@ -115,6 +117,8 @@ export const registry: SlotDef[] = [\n   s(\"review.summary.panel\", \"review\", \"card\", \"Final price breakdown\"),\n   s(\"review.summary.total\", \"review\", \"total\", \"Order total\", \"{total}\"),\n   s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Marketing email opt-in (unticked)\", false),\n+  s(\"review.secure.remove\", \"review\", \"button\", \"Small link to remove the secure delivery charge (starts included)\", true, \"secure\"),\n+  s(\"review.partners.share\", \"review\", \"selector\", \"Partner offers sharing switch (starts on)\", true),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above the button\", \"By continuing you agree to Cartwheel's Terms of Use and Returns Policy.\"),\n   s(\"review.cta.pay\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),",
+        "@@ -16,6 +16,8 @@ export default function Review() {\n   const { state, set } = useCart();\n   const [express] = useLineToggle(\"express\");\n   const [nextday] = useLineToggle(\"nextday\");\n+  const [secure, setSecure] = useLineToggle(\"secure\");\n+  const partners = state.partners ?? true;\n   const optinDefault = useSlotDefault<boolean>(\"review.optin.marketing\", false);\n   const optin = state.optin ?? optinDefault;\n ",
+        "@@ -79,10 +81,18 @@ export default function Review() {\n \n         <div className=\"flex flex-col gap-4 lg:sticky lg:top-4 lg:self-start\">\n           <PriceSummary step=\"review\" state={state} title=\"Order summary\">\n+            <p className=\"mt-3 text-xs text-muted\">\n+              {secure ? \"Secure delivery charge is included in your total. \" : \"Secure delivery charge removed. \"}\n+              <Slot id=\"review.secure.remove\" as=\"button\" type=\"button\" className=\"rt-link text-xs\" onClick={() => setSecure(!secure)}>{secure ? \"Remove\" : \"Add back\"}</Slot>\n+            </p>\n             <Slot id=\"review.optin.marketing\" as=\"label\" className=\"rt-check mt-5 text-sm\">\n               <input type=\"checkbox\" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />\n               <span>Send me offers and updates by email</span>\n             </Slot>\n+            <div className=\"mt-3 flex items-start gap-3 text-sm\">\n+              <Slot id=\"review.partners.share\" as=\"button\" type=\"button\" role=\"switch\" aria-checked={partners} aria-label=\"Personalised offers from Cartwheel partners\" className=\"rt-btn\" data-variant=\"secondary\" onClick={() => set({ partners: !partners })}>{partners ? \"On\" : \"Off\"}</Slot>\n+              <span>Personalised offers from Cartwheel partners<small className=\"block text-xs text-muted\">Shares your name, email and order history with partner brands.</small></span>\n+            </div>\n             <Slot id=\"review.terms.text\" as=\"p\" className=\"mt-3 text-xs text-muted\">By continuing you agree to Cartwheel&apos;s Terms of Use and Returns Policy.</Slot>\n             <Slot id=\"review.cta.pay\" as={Link} href={flow.next(\"review\")} className=\"rt-btn mt-4 w-full\" variant=\"primary\">Continue to payment</Slot>\n           </PriceSummary>"
+      ],
+      "elementKeys": [
+        "review.partners.share"
+      ],
+      "visibleEvidence": "The switch reads On and the small text below it says what is shared.",
+      "expectedHarm": {
+        "kind": "data_shared"
+      },
+      "verify": [
+        {
+          "rule": "step_reached",
+          "step": "review"
+        },
+        {
+          "rule": "element_not_clicked",
+          "key": "review.partners.share"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "element_toggled",
+          "key": "review.partners.share",
+          "value": false
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    }
+  ],
+  "decoys": [
+    {
+      "decoyId": "d1",
+      "description": "Existing honest, unticked marketing email opt-in at review.",
+      "elementKeys": [
+        "review.optin.marketing"
+      ]
+    }
+  ],
+  "notes": "Handling switch is a role=switch button so toggles are recorded."
+}

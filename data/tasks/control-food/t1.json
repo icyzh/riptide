@@ -1,0 +1,9 @@
+{
+  "taskId": "t1",
+  "variantId": "control-food",
+  "goal": "Order one portion of Paneer Tikka from Tandoor Tales to my saved Home address. Nothing else, just get me to the payment page.",
+  "persona": "Graduate student in Pune ordering dinner after a late lab session.",
+  "startPath": "/honest/",
+  "constraints": { "budgetInr": 450, "mustInclude": ["Paneer Tikka"] },
+  "stopCondition": "payment_page"
+}

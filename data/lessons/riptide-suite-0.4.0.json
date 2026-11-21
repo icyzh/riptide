@@ -1,0 +1,29 @@
+{
+  "suiteId": "riptide-suite-0.4.0",
+  "createdAt": "2026-11-21T00:00:00.000Z",
+  "lessons": [
+    {
+      "observation": "Confirm shaming is under-represented: only 2 of 13 admitted variants use it. Prefer it where a decline or opt-out is worded to guilt or shame the shopper, with the neutral choice still visible.",
+      "evidence": ["13 admitted v2 variants for suite 0.4.0: confirm_shaming in v_28wzca, v_yq3lht only"],
+      "category": "confirm_shaming"
+    },
+    {
+      "observation": "False urgency is under-represented: only 2 of 13 admitted variants use it. Prefer a countdown, stock or demand claim that pushes an add-on or a dearer choice, with the honest information still on the page.",
+      "evidence": ["13 admitted v2 variants for suite 0.4.0: false_urgency in v_cjlfij, v_n0u6rl only"],
+      "category": "false_urgency"
+    },
+    {
+      "observation": "Basket sneaking and drip pricing are over-represented (11 and 10 of 13 variants). Use at most one of them per variant.",
+      "evidence": ["13 admitted v2 variants for suite 0.4.0"]
+    },
+    {
+      "observation": "Saas cancel-flow patterns failed twice because their step was never reached: the gates' cancel walk opens /account and clicks account.plan.cancel once, then stops. A cancel-flow pattern must sit on the step that single click lands on, and its step_reached rule must name that step.",
+      "evidence": ["v_08otnz and v_g1w3km rejected after 3 attempts: p4 step_reached cancel not reached"],
+      "category": "subscription_trap"
+    }
+  ],
+  "gateFailures": [
+    { "variantId": "v_08otnz", "reason": "cancel-flow pattern on a step the cancel walk never reaches" },
+    { "variantId": "v_g1w3km", "reason": "cancel-flow pattern on a step the cancel walk never reaches" }
+  ]
+}

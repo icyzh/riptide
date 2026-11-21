@@ -1,0 +1,14 @@
+{
+  "taskId": "t2",
+  "variantId": "v_kfzvxa",
+  "goal": "Get one Paneer Tikka from Tandoor Tales delivered to Home. I'm not in a hurry, so a later delivery time is fine. Stop at payment.",
+  "persona": "Student who wants to keep the order cheap",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 450,
+    "mustInclude": [
+      "Paneer Tikka"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

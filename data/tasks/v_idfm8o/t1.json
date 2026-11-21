@@ -1,0 +1,17 @@
+{
+  "taskId": "t1",
+  "variantId": "v_idfm8o",
+  "goal": "Set me up on the All Apps plan, monthly billing. I'll need extra cloud space for stock assets, so add the storage add-on too.",
+  "persona": "Freelance designer in Bengaluru",
+  "startPath": "/honest/pricing",
+  "constraints": {
+    "budgetInr": 5200,
+    "mustInclude": [
+      "All Apps"
+    ],
+    "wantsAddOns": [
+      "storage"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

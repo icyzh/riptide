@@ -1,0 +1,14 @@
+{
+  "taskId": "t2",
+  "variantId": "v_wshgwj",
+  "goal": "I need a New Delhi to Mumbai flight tomorrow, Saver fare, and I'd like a hot meal on board.",
+  "persona": "Frequent flyer who skips breakfast",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 10000,
+    "wantsAddOns": [
+      "meal"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

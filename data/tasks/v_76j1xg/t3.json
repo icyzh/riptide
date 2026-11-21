@@ -1,0 +1,9 @@
+{
+  "taskId": "t3",
+  "variantId": "v_76j1xg",
+  "goal": "I want to cancel my Reelbox membership. Take me to the final confirmation step.",
+  "persona": "Parent cutting down subscriptions",
+  "startPath": "/honest/account",
+  "constraints": {},
+  "stopCondition": "before_cancel_confirm"
+}

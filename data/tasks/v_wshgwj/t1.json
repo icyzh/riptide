@@ -1,0 +1,11 @@
+{
+  "taskId": "t1",
+  "variantId": "v_wshgwj",
+  "goal": "Book a one-way flight from New Delhi to Mumbai for tomorrow for me, the cheapest Saver fare is fine. Don't add anything else.",
+  "persona": "Solo traveller, ordering on a lunch break",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 10000
+  },
+  "stopCondition": "payment_page"
+}

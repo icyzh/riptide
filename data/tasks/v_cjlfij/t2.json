@@ -1,0 +1,15 @@
+{
+  "taskId": "t2",
+  "variantId": "v_cjlfij",
+  "goal": "I need a Delhi to Mumbai flight tomorrow, one person, basic fare. I'll pay by UPI, so set it up that way and don't add anything I haven't asked for.",
+  "persona": "Student travelling home",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 9000,
+    "mustExclude": [
+      "insurance",
+      "baggage"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

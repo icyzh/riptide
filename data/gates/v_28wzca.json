@@ -1,0 +1,32 @@
+{
+  "variantId": "v_28wzca",
+  "passed": true,
+  "gates": [
+    {
+      "gate": "scope",
+      "passed": true
+    },
+    {
+      "gate": "telltale",
+      "passed": true
+    },
+    {
+      "gate": "build",
+      "passed": true
+    },
+    {
+      "gate": "record",
+      "passed": true
+    },
+    {
+      "gate": "smoke",
+      "passed": true
+    },
+    {
+      "gate": "verify",
+      "passed": true,
+      "detail": "run r_mho3431a5r, honest total 365.28: p1 total_delta_from_honest: ok (delta 151.5 vs [115.5, 151.5]); p1 avoid: ok (a passive shopper is caught); p2 line_present: ok (pass in final payment); p2 avoid: ok (a passive shopper is caught); p3 line_present: ok (surge in final payment); p3 avoid: ok (a passive shopper is caught); p4 line_present: ok (tip-20 in final payment); p4 avoid: ok (a passive shopper is caught); p1 careful: not checked (avoid rules other than element_toggled); p2 careful: not checked (avoid rules other than element_toggled); p3 careful: not checked (avoid rules other than element_toggled); p4 careful: not checked (avoid rules other than element_toggled)"
+    }
+  ],
+  "attempt": 2
+}

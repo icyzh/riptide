@@ -1,0 +1,11 @@
+{
+  "taskId": "t2",
+  "variantId": "v_bzhsr4",
+  "goal": "I need decent noise-cancelling earbuds, nothing fancy. Pick the Noisewave one, use my saved address and standard shipping.",
+  "persona": "Student ordering a first pair",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 3000
+  },
+  "stopCondition": "payment_page"
+}

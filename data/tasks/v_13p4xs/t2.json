@@ -1,0 +1,14 @@
+{
+  "taskId": "t2",
+  "variantId": "v_13p4xs",
+  "goal": "I need one seat on a Delhi to Mumbai flight tomorrow, basic Saver fare, and I'd like a hot meal on board. Nothing else please.",
+  "persona": "Consultant travelling light",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 9500,
+    "wantsAddOns": [
+      "meal"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

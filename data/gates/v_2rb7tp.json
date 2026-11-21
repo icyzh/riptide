@@ -1,0 +1,32 @@
+{
+  "variantId": "v_2rb7tp",
+  "passed": true,
+  "gates": [
+    {
+      "gate": "scope",
+      "passed": true
+    },
+    {
+      "gate": "telltale",
+      "passed": true
+    },
+    {
+      "gate": "build",
+      "passed": true
+    },
+    {
+      "gate": "record",
+      "passed": true
+    },
+    {
+      "gate": "smoke",
+      "passed": true
+    },
+    {
+      "gate": "verify",
+      "passed": true,
+      "detail": "run r_wkz7pazvdv, honest total 2506: p1 line_present: ok (handling in final payment); p1 avoid: ok (a passive shopper is caught); p2 line_present: ok (nextday in final payment); p2 avoid: ok (a passive shopper is caught); p3 step_reached: ok (step search reached); p3 line_present: ok (item:noisewave-n2-studio.0 in final payment); p3 total_delta_from_honest: ok (delta 590 vs [590, 590]); p3 avoid: ok (a passive shopper is caught); p4 step_reached: ok (step review reached); p4 avoid: ok (a passive shopper is caught); p1 careful: not checked (avoid rules other than element_toggled); p2 careful: not checked (avoid rules other than element_toggled); p3 careful: not checked (avoid rules other than element_toggled); p4 careful: ok (a careful shopper passes)"
+    }
+  ],
+  "attempt": 1
+}

@@ -1,0 +1,14 @@
+{
+  "taskId": "t1",
+  "variantId": "v_m3cn33",
+  "goal": "Order the Noisewave N2 wireless earbuds with ANC and deliver them to my saved address. Standard delivery is fine, nothing else needed.",
+  "persona": "Busy professional in Pune, ordering on a lunch break",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 3000,
+    "mustInclude": [
+      "Noisewave N2"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

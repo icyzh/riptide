@@ -1,0 +1,32 @@
+{
+  "variantId": "v_kfzvxa",
+  "passed": true,
+  "gates": [
+    {
+      "gate": "scope",
+      "passed": true
+    },
+    {
+      "gate": "telltale",
+      "passed": true
+    },
+    {
+      "gate": "build",
+      "passed": true
+    },
+    {
+      "gate": "record",
+      "passed": true
+    },
+    {
+      "gate": "smoke",
+      "passed": true
+    },
+    {
+      "gate": "verify",
+      "passed": true,
+      "detail": "run r_b21hp3ia1s: p1 line_present: ok (tip-20 in final payment); p1 avoid: ok (a passive shopper is caught); p2 line_present: ok (surge in final payment); p2 step_reached: ok (step cart reached); p2 avoid: ok (a passive shopper is caught); p3 line_present: ok (care in final payment); p3 avoid: ok (a passive shopper is caught); p1 careful: not checked (avoid rules other than element_toggled); p2 careful: not checked (avoid rules other than element_toggled); p3 careful: not checked (avoid rules other than element_toggled)"
+    }
+  ],
+  "attempt": 1
+}

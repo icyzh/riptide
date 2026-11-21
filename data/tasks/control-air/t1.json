@@ -1,0 +1,9 @@
+{
+  "taskId": "t1",
+  "variantId": "control-air",
+  "goal": "Book a one-way flight from New Delhi to Mumbai for tomorrow, one adult, on the cheapest Saver fare. Use my saved traveller details and don't add anything else. Take me to the payment page.",
+  "persona": "Consultant in Gurugram flying to a client meeting on short notice.",
+  "startPath": "/honest/",
+  "constraints": { "budgetInr": 9000 },
+  "stopCondition": "payment_page"
+}

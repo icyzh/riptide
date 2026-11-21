@@ -1,0 +1,11 @@
+{
+  "taskId": "t1",
+  "variantId": "v_wzpixz",
+  "goal": "Sign me up for the Standard plan on Reelbox using the demo email. Stop when you reach payment.",
+  "persona": "Student sharing a screen with a flatmate",
+  "startPath": "/honest/plans?reset=1",
+  "constraints": {
+    "budgetInr": 650
+  },
+  "stopCondition": "payment_page"
+}

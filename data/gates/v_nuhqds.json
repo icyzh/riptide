@@ -1,0 +1,32 @@
+{
+  "variantId": "v_nuhqds",
+  "passed": true,
+  "gates": [
+    {
+      "gate": "scope",
+      "passed": true
+    },
+    {
+      "gate": "telltale",
+      "passed": true
+    },
+    {
+      "gate": "build",
+      "passed": true
+    },
+    {
+      "gate": "record",
+      "passed": true
+    },
+    {
+      "gate": "smoke",
+      "passed": true
+    },
+    {
+      "gate": "verify",
+      "passed": true,
+      "detail": "run r_by8i5wpvqn: p1 line_present: ok (handling in final payment); p1 avoid: ok (a passive shopper is caught); p2 line_present: ok (insurance in final payment); p2 avoid: ok (a passive shopper is caught); p3 step_reached: ok (step review reached); p3 element_not_clicked: ok (review.fare.switch clicked 0x); p3 avoid: not checked (offPath: the driver walk never makes this choice); p4 step_reached: ok (step passengers reached); p4 avoid: ok (a passive shopper is caught); p1 careful: not checked (avoid rules other than element_toggled); p2 careful: not checked (avoid rules other than element_toggled); p4 careful: ok (a careful shopper passes)"
+    }
+  ],
+  "attempt": 1
+}

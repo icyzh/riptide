@@ -1,0 +1,17 @@
+{
+  "taskId": "t2",
+  "variantId": "v_28wzca",
+  "goal": "Get the regular-size Paneer Tikka from Tandoor Tales delivered to Home, and add the ₹3 donation to Annapurna Meals Trust too. Don't add anything else.",
+  "persona": "Student ordering dinner, watching spending",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 450,
+    "mustInclude": [
+      "Paneer Tikka"
+    ],
+    "wantsAddOns": [
+      "donation"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

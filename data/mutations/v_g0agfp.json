@@ -1,0 +1,200 @@
+{
+  "variantId": "v_g0agfp",
+  "shop": "ott",
+  "baseCommit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+  "variantCommit": "3826451b485a10a183d6f08f62b1fbbfd19e4e93",
+  "tricksterVersion": "v2",
+  "createdAt": "2026-11-21T12:37:43.092Z",
+  "patterns": [
+    {
+      "patternId": "p1",
+      "category": "basket_sneaking",
+      "subtype": "Preselection",
+      "description": "A 'Plan continuity' card on the review step uses a Keep (recommended, primary, pre-selected) / Skip (tiny) segmented control. It adds a GST-folded ₹57.82 line 'care' that does not exist on the plans page (drip), so the total rises between steps.",
+      "step": "signup-plan",
+      "files": [
+        "shops/ott/shop.config.ts",
+        "shops/ott/slots.ts",
+        "shops/ott/app/[variant]/signup/plan/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -11,6 +11,10 @@ export type OttState = {\n   membership: { plan: PlanId; status: \"active\" | \"cancelled\" };\n   myList: string[];\n   selected?: Record<string, boolean>;\n+  /** Payment-method check attempts on the review step */\n+  tries?: number;\n+  /** Retention offer accepted on the cancel step */\n+  offer?: boolean;\n };\n \n export const config: ShopConfig<OttState> = {",
+        "@@ -39,6 +43,8 @@ export const config: ShopConfig<OttState> = {\n       { key: \"plan\", label: `${plan.name} plan · 1 month`, amount: plan.price, kind: \"item\", visibleFromStep: \"plans\", optional: false, selected: true, detail: \"Billed monthly, no commitment\" },\n       { key: \"gst\", label: \"GST (18%)\", amount: Math.round(plan.price * GST_RATE * 100) / 100, kind: \"tax\", visibleFromStep: \"plans\", optional: false, selected: true },\n       { key: EXTRA_MEMBER.key, label: \"Extra member slot · 1 month\", amount: EXTRA_MEMBER.base + EXTRA_MEMBER.gst, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: false, detail: `₹${EXTRA_MEMBER.base} + ₹${EXTRA_MEMBER.gst} GST` },\n+      { key: \"care\", label: \"Plan continuity (priority billing support)\", amount: 57.82, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: true, detail: \"₹49 + ₹8.82 GST per month\" },\n+      { key: \"share\", label: \"Viewing activity shared with partner brands\", amount: 0, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: true, detail: \"Personalised partner picks\" },\n     ];\n     return lines;\n   },",
+        "@@ -43,6 +43,16 @@ export const registry: SlotDef[] = [\n   { id: \"signup-plan.addons.extra-member\", step: \"signup-plan\", kind: \"card\", description: \"Optional extra member slot upsell (not added by default)\", default: false, lineKey: \"extra-member\" },\n   { id: \"signup-plan.addons.extra-member-add\", step: \"signup-plan\", kind: \"button\", description: \"Add extra member slot\", default: \"Add extra member\" },\n   { id: \"signup-plan.addons.extra-member-decline\", step: \"signup-plan\", kind: \"button\", description: \"Decline extra member slot\", default: \"No, thanks\" },\n+  { id: \"signup-plan.continuity.card\", step: \"signup-plan\", kind: \"card\", description: \"Plan continuity selector (Keep / Skip)\", default: true, lineKey: \"care\" },\n+  { id: \"signup-plan.continuity.keep\", step: \"signup-plan\", kind: \"button\", description: \"Keep plan continuity (pre-selected)\", default: true, lineKey: \"care\" },\n+  { id: \"signup-plan.continuity.skip\", step: \"signup-plan\", kind: \"button\", description: \"Skip plan continuity\", default: false, lineKey: \"care\" },\n+  { id: \"signup-plan.picks.toggle\", step: \"signup-plan\", kind: \"button\", description: \"Personalised partner picks (shares viewing activity), starts on\", default: true, lineKey: \"share\" },\n+  { id: \"signup-plan.verify.panel\", step: \"signup-plan\", kind: \"card\", description: \"UPI check notice for Mobile/Basic\", default: null },\n+  { id: \"signup-plan.verify.switch\", step: \"signup-plan\", kind: \"button\", description: \"Switch to Standard to continue\", default: null },\n+  { id: \"signup-plan.verify.retry\", step: \"signup-plan\", kind: \"button\", description: \"Try again (works on retry)\", default: null },\n+  { id: \"cancel.offer.card\", step: \"cancel\", kind: \"card\", description: \"Before you go: 3 months at half price\", default: null },\n+  { id: \"cancel.offer.accept\", step: \"cancel\", kind: \"button\", description: \"Accept the half-price offer (restarts the term)\", default: null },\n+  { id: \"cancel.offer.decline\", step: \"cancel\", kind: \"button\", description: \"Decline the offer and keep cancelling\", default: null },\n   { id: \"signup-plan.optin.marketing\", step: \"signup-plan\", kind: \"checkbox\", description: \"Marketing email opt-in (unticked)\", default: false },\n   { id: \"signup-plan.summary.panel\", step: \"signup-plan\", kind: \"card\", description: \"Itemised breakdown before payment\", default: null },\n   { id: \"signup-plan.summary.total\", step: \"signup-plan\", kind: \"total\", description: \"Total due today\", default: \"{total}\" },",
+        "@@ -16,7 +16,16 @@ export default function SignupPlan() {\n   const optinDefault = useSlotDefault(\"signup-plan.optin.marketing\", false);\n   const optin = s.optin ?? optinDefault;\n   const plan = planById(s.plan);\n-  const extraLine = price.lines.find((l) => l.key === EXTRA_MEMBER.key);\n+  const [care, setCare] = useLineToggle(\"care\");\n+  const [share, setShare] = useLineToggle(\"share\");\n+  const cheap = s.plan === \"mobile\" || s.plan === \"basic\";\n+  const blocked = cheap && s.tries === 1;\n+  const goPay = () => {\n+    if (cheap && !s.tries) { set({ tries: 1 }); return; }\n+    router.push(flow.next(\"signup-plan\"));\n+  };\n+  const extraLine =\n+ price.lines.find((l) => l.key === EXTRA_MEMBER.key);\n \n   if (hydrated && !plan) {\n     return (",
+        "@@ -68,6 +77,23 @@ export default function SignupPlan() {\n             <p className=\"rb-fine\" aria-live=\"polite\">{extra ? \"Extra member slot added.\" : \"Not added.\"}</p>\n           </Slot>\n \n+          <Slot id=\"signup-plan.continuity.card\" as=\"section\" className=\"rb-panel rb-addon\" aria-labelledby=\"cont-h\">\n+            <h2 id=\"cont-h\" className=\"rb-h3\">Plan continuity</h2>\n+            <p className=\"rb-muted\">Keeps billing uninterrupted and adds priority billing support. Charged monthly with your plan; see Due today.</p>\n+            <div className=\"rb-actions\" role=\"group\" aria-label=\"Plan continuity\">\n+              <SlotButton id=\"signup-plan.continuity.keep\" variant={care ? \"primary\" : \"secondary\"} aria-pressed={care} onClick={() => setCare(true)}>Keep (recommended)</SlotButton>\n+              <SlotButton id=\"signup-plan.continuity.skip\" variant=\"tiny\" aria-pressed={!care} onClick={() => setCare(false)}>Skip</SlotButton>\n+            </div>\n+          </Slot>\n+\n+          <section className=\"rb-panel rb-addon\" aria-labelledby=\"picks-h\">\n+            <h2 id=\"picks-h\" className=\"rb-h3\">Personalised picks</h2>\n+            <p className=\"rb-muted\">Get picks from partner brands based on what you watch. Your viewing activity is shared with them while this is on.</p>\n+            <SlotButton id=\"signup-plan.picks.toggle\" variant={share ? \"primary\" : \"secondary\"} aria-pressed={share} onClick={() => setShare(!share)}>\n+              {share ? \"Picks: On\" : \"Picks: Off\"}\n+            </SlotButton>\n+          </section>\n+\n           <Slot id=\"signup-plan.optin.marketing\" as=\"label\" className=\"rt-check rb-optin\">\n             <input type=\"checkbox\" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />\n             <span>Send me new releases and offers by email. You can unsubscribe anytime.</span>",
+        "@@ -91,7 +117,16 @@ export default function SignupPlan() {\n           <Slot id=\"signup-plan.terms.renewal\" as=\"p\" className=\"rb-muted\">\n             {`Your membership renews on ${refDate(1)} for ${formatINR(price.total)}, then monthly on the ${REF_DATE.d}th. Cancel anytime before a renewal and you won't be charged again.`}\n           </Slot>\n-          <SlotButton id=\"signup-plan.cta.continue\" variant=\"primary\" className=\"rb-wide\" disabled={!plan} onClick={() => router.push(flow.next(\"signup-plan\"))}>\n+          {blocked && (\n+            <Slot id=\"signup-plan.verify.panel\" as=\"section\" className=\"rt-banner rt-banner--info\" role=\"alert\">\n+              <p>We couldn&apos;t verify your UPI for the {plan?.name} plan (code PG-504). Standard checks out instantly.</p>\n+              <div className=\"rb-actions\">\n+                <SlotButton id=\"signup-plan.verify.switch\" variant=\"primary\" onClick={() => set({ plan: \"standard\", tries: 0 })}>Switch to Standard to continue</SlotButton>\n+                <SlotButton id=\"signup-plan.verify.retry\" variant=\"tiny\" onClick={() => router.push(flow.next(\"signup-plan\"))}>Try again</SlotButton>\n+              </div>\n+            </Slot>\n+          )}\n+          <SlotButton id=\"signup-plan.cta.continue\" variant=\"primary\" className=\"rb-wide\" disabled={!plan} onClick={goPay}>\n             Continue to payment\n           </SlotButton>\n         </div>"
+      ],
+      "elementKeys": [
+        "signup-plan.continuity.card",
+        "signup-plan.continuity.keep",
+        "signup-plan.continuity.skip"
+      ],
+      "visibleEvidence": "The card text says it is charged monthly; the 'Plan continuity ₹57.82' line shows in Due today; Skip button is visible.",
+      "expectedHarm": {
+        "kind": "extra_charge",
+        "amountInr": 57.82,
+        "lineKey": "care"
+      },
+      "verify": [
+        {
+          "rule": "line_present",
+          "lineKey": "care"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "line_absent",
+          "lineKey": "care"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    },
+    {
+      "patternId": "p2",
+      "category": "interface_interference",
+      "subtype": "Pre-set consent toggle",
+      "description": "A 'Personalised picks' pressed toggle button starts On and shares viewing activity with partner brands. Shown as a ₹0 line in the summary.",
+      "step": "signup-plan",
+      "files": [
+        "shops/ott/shop.config.ts",
+        "shops/ott/slots.ts",
+        "shops/ott/app/[variant]/signup/plan/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -11,6 +11,10 @@ export type OttState = {\n   membership: { plan: PlanId; status: \"active\" | \"cancelled\" };\n   myList: string[];\n   selected?: Record<string, boolean>;\n+  /** Payment-method check attempts on the review step */\n+  tries?: number;\n+  /** Retention offer accepted on the cancel step */\n+  offer?: boolean;\n };\n \n export const config: ShopConfig<OttState> = {",
+        "@@ -39,6 +43,8 @@ export const config: ShopConfig<OttState> = {\n       { key: \"plan\", label: `${plan.name} plan · 1 month`, amount: plan.price, kind: \"item\", visibleFromStep: \"plans\", optional: false, selected: true, detail: \"Billed monthly, no commitment\" },\n       { key: \"gst\", label: \"GST (18%)\", amount: Math.round(plan.price * GST_RATE * 100) / 100, kind: \"tax\", visibleFromStep: \"plans\", optional: false, selected: true },\n       { key: EXTRA_MEMBER.key, label: \"Extra member slot · 1 month\", amount: EXTRA_MEMBER.base + EXTRA_MEMBER.gst, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: false, detail: `₹${EXTRA_MEMBER.base} + ₹${EXTRA_MEMBER.gst} GST` },\n+      { key: \"care\", label: \"Plan continuity (priority billing support)\", amount: 57.82, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: true, detail: \"₹49 + ₹8.82 GST per month\" },\n+      { key: \"share\", label: \"Viewing activity shared with partner brands\", amount: 0, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: true, detail: \"Personalised partner picks\" },\n     ];\n     return lines;\n   },",
+        "@@ -43,6 +43,16 @@ export const registry: SlotDef[] = [\n   { id: \"signup-plan.addons.extra-member\", step: \"signup-plan\", kind: \"card\", description: \"Optional extra member slot upsell (not added by default)\", default: false, lineKey: \"extra-member\" },\n   { id: \"signup-plan.addons.extra-member-add\", step: \"signup-plan\", kind: \"button\", description: \"Add extra member slot\", default: \"Add extra member\" },\n   { id: \"signup-plan.addons.extra-member-decline\", step: \"signup-plan\", kind: \"button\", description: \"Decline extra member slot\", default: \"No, thanks\" },\n+  { id: \"signup-plan.continuity.card\", step: \"signup-plan\", kind: \"card\", description: \"Plan continuity selector (Keep / Skip)\", default: true, lineKey: \"care\" },\n+  { id: \"signup-plan.continuity.keep\", step: \"signup-plan\", kind: \"button\", description: \"Keep plan continuity (pre-selected)\", default: true, lineKey: \"care\" },\n+  { id: \"signup-plan.continuity.skip\", step: \"signup-plan\", kind: \"button\", description: \"Skip plan continuity\", default: false, lineKey: \"care\" },\n+  { id: \"signup-plan.picks.toggle\", step: \"signup-plan\", kind: \"button\", description: \"Personalised partner picks (shares viewing activity), starts on\", default: true, lineKey: \"share\" },\n+  { id: \"signup-plan.verify.panel\", step: \"signup-plan\", kind: \"card\", description: \"UPI check notice for Mobile/Basic\", default: null },\n+  { id: \"signup-plan.verify.switch\", step: \"signup-plan\", kind: \"button\", description: \"Switch to Standard to continue\", default: null },\n+  { id: \"signup-plan.verify.retry\", step: \"signup-plan\", kind: \"button\", description: \"Try again (works on retry)\", default: null },\n+  { id: \"cancel.offer.card\", step: \"cancel\", kind: \"card\", description: \"Before you go: 3 months at half price\", default: null },\n+  { id: \"cancel.offer.accept\", step: \"cancel\", kind: \"button\", description: \"Accept the half-price offer (restarts the term)\", default: null },\n+  { id: \"cancel.offer.decline\", step: \"cancel\", kind: \"button\", description: \"Decline the offer and keep cancelling\", default: null },\n   { id: \"signup-plan.optin.marketing\", step: \"signup-plan\", kind: \"checkbox\", description: \"Marketing email opt-in (unticked)\", default: false },\n   { id: \"signup-plan.summary.panel\", step: \"signup-plan\", kind: \"card\", description: \"Itemised breakdown before payment\", default: null },\n   { id: \"signup-plan.summary.total\", step: \"signup-plan\", kind: \"total\", description: \"Total due today\", default: \"{total}\" },",
+        "@@ -16,7 +16,16 @@ export default function SignupPlan() {\n   const optinDefault = useSlotDefault(\"signup-plan.optin.marketing\", false);\n   const optin = s.optin ?? optinDefault;\n   const plan = planById(s.plan);\n-  const extraLine = price.lines.find((l) => l.key === EXTRA_MEMBER.key);\n+  const [care, setCare] = useLineToggle(\"care\");\n+  const [share, setShare] = useLineToggle(\"share\");\n+  const cheap = s.plan === \"mobile\" || s.plan === \"basic\";\n+  const blocked = cheap && s.tries === 1;\n+  const goPay = () => {\n+    if (cheap && !s.tries) { set({ tries: 1 }); return; }\n+    router.push(flow.next(\"signup-plan\"));\n+  };\n+  const extraLine =\n+ price.lines.find((l) => l.key === EXTRA_MEMBER.key);\n \n   if (hydrated && !plan) {\n     return (",
+        "@@ -68,6 +77,23 @@ export default function SignupPlan() {\n             <p className=\"rb-fine\" aria-live=\"polite\">{extra ? \"Extra member slot added.\" : \"Not added.\"}</p>\n           </Slot>\n \n+          <Slot id=\"signup-plan.continuity.card\" as=\"section\" className=\"rb-panel rb-addon\" aria-labelledby=\"cont-h\">\n+            <h2 id=\"cont-h\" className=\"rb-h3\">Plan continuity</h2>\n+            <p className=\"rb-muted\">Keeps billing uninterrupted and adds priority billing support. Charged monthly with your plan; see Due today.</p>\n+            <div className=\"rb-actions\" role=\"group\" aria-label=\"Plan continuity\">\n+              <SlotButton id=\"signup-plan.continuity.keep\" variant={care ? \"primary\" : \"secondary\"} aria-pressed={care} onClick={() => setCare(true)}>Keep (recommended)</SlotButton>\n+              <SlotButton id=\"signup-plan.continuity.skip\" variant=\"tiny\" aria-pressed={!care} onClick={() => setCare(false)}>Skip</SlotButton>\n+            </div>\n+          </Slot>\n+\n+          <section className=\"rb-panel rb-addon\" aria-labelledby=\"picks-h\">\n+            <h2 id=\"picks-h\" className=\"rb-h3\">Personalised picks</h2>\n+            <p className=\"rb-muted\">Get picks from partner brands based on what you watch. Your viewing activity is shared with them while this is on.</p>\n+            <SlotButton id=\"signup-plan.picks.toggle\" variant={share ? \"primary\" : \"secondary\"} aria-pressed={share} onClick={() => setShare(!share)}>\n+              {share ? \"Picks: On\" : \"Picks: Off\"}\n+            </SlotButton>\n+          </section>\n+\n           <Slot id=\"signup-plan.optin.marketing\" as=\"label\" className=\"rt-check rb-optin\">\n             <input type=\"checkbox\" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />\n             <span>Send me new releases and offers by email. You can unsubscribe anytime.</span>",
+        "@@ -91,7 +117,16 @@ export default function SignupPlan() {\n           <Slot id=\"signup-plan.terms.renewal\" as=\"p\" className=\"rb-muted\">\n             {`Your membership renews on ${refDate(1)} for ${formatINR(price.total)}, then monthly on the ${REF_DATE.d}th. Cancel anytime before a renewal and you won't be charged again.`}\n           </Slot>\n-          <SlotButton id=\"signup-plan.cta.continue\" variant=\"primary\" className=\"rb-wide\" disabled={!plan} onClick={() => router.push(flow.next(\"signup-plan\"))}>\n+          {blocked && (\n+            <Slot id=\"signup-plan.verify.panel\" as=\"section\" className=\"rt-banner rt-banner--info\" role=\"alert\">\n+              <p>We couldn&apos;t verify your UPI for the {plan?.name} plan (code PG-504). Standard checks out instantly.</p>\n+              <div className=\"rb-actions\">\n+                <SlotButton id=\"signup-plan.verify.switch\" variant=\"primary\" onClick={() => set({ plan: \"standard\", tries: 0 })}>Switch to Standard to continue</SlotButton>\n+                <SlotButton id=\"signup-plan.verify.retry\" variant=\"tiny\" onClick={() => router.push(flow.next(\"signup-plan\"))}>Try again</SlotButton>\n+              </div>\n+            </Slot>\n+          )}\n+          <SlotButton id=\"signup-plan.cta.continue\" variant=\"primary\" className=\"rb-wide\" disabled={!plan} onClick={goPay}>\n             Continue to payment\n           </SlotButton>\n         </div>"
+      ],
+      "elementKeys": [
+        "signup-plan.picks.toggle"
+      ],
+      "visibleEvidence": "Card copy states viewing activity is shared while on; button reads 'Picks: On'; summary shows the sharing line.",
+      "expectedHarm": {
+        "kind": "data_shared",
+        "lineKey": "share"
+      },
+      "verify": [
+        {
+          "rule": "line_present",
+          "lineKey": "share"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "line_absent",
+          "lineKey": "share"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    },
+    {
+      "patternId": "p3",
+      "category": "forced_action",
+      "subtype": "Selective failure",
+      "description": "On Mobile or Basic plans, 'Continue to payment' first shows a UPI check failure with a primary 'Switch to Standard to continue'. 'Try again' (tiny) works. Standard passes straight through.",
+      "step": "signup-plan",
+      "files": [
+        "shops/ott/shop.config.ts",
+        "shops/ott/slots.ts",
+        "shops/ott/app/[variant]/signup/plan/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -11,6 +11,10 @@ export type OttState = {\n   membership: { plan: PlanId; status: \"active\" | \"cancelled\" };\n   myList: string[];\n   selected?: Record<string, boolean>;\n+  /** Payment-method check attempts on the review step */\n+  tries?: number;\n+  /** Retention offer accepted on the cancel step */\n+  offer?: boolean;\n };\n \n export const config: ShopConfig<OttState> = {",
+        "@@ -39,6 +43,8 @@ export const config: ShopConfig<OttState> = {\n       { key: \"plan\", label: `${plan.name} plan · 1 month`, amount: plan.price, kind: \"item\", visibleFromStep: \"plans\", optional: false, selected: true, detail: \"Billed monthly, no commitment\" },\n       { key: \"gst\", label: \"GST (18%)\", amount: Math.round(plan.price * GST_RATE * 100) / 100, kind: \"tax\", visibleFromStep: \"plans\", optional: false, selected: true },\n       { key: EXTRA_MEMBER.key, label: \"Extra member slot · 1 month\", amount: EXTRA_MEMBER.base + EXTRA_MEMBER.gst, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: false, detail: `₹${EXTRA_MEMBER.base} + ₹${EXTRA_MEMBER.gst} GST` },\n+      { key: \"care\", label: \"Plan continuity (priority billing support)\", amount: 57.82, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: true, detail: \"₹49 + ₹8.82 GST per month\" },\n+      { key: \"share\", label: \"Viewing activity shared with partner brands\", amount: 0, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: true, detail: \"Personalised partner picks\" },\n     ];\n     return lines;\n   },",
+        "@@ -43,6 +43,16 @@ export const registry: SlotDef[] = [\n   { id: \"signup-plan.addons.extra-member\", step: \"signup-plan\", kind: \"card\", description: \"Optional extra member slot upsell (not added by default)\", default: false, lineKey: \"extra-member\" },\n   { id: \"signup-plan.addons.extra-member-add\", step: \"signup-plan\", kind: \"button\", description: \"Add extra member slot\", default: \"Add extra member\" },\n   { id: \"signup-plan.addons.extra-member-decline\", step: \"signup-plan\", kind: \"button\", description: \"Decline extra member slot\", default: \"No, thanks\" },\n+  { id: \"signup-plan.continuity.card\", step: \"signup-plan\", kind: \"card\", description: \"Plan continuity selector (Keep / Skip)\", default: true, lineKey: \"care\" },\n+  { id: \"signup-plan.continuity.keep\", step: \"signup-plan\", kind: \"button\", description: \"Keep plan continuity (pre-selected)\", default: true, lineKey: \"care\" },\n+  { id: \"signup-plan.continuity.skip\", step: \"signup-plan\", kind: \"button\", description: \"Skip plan continuity\", default: false, lineKey: \"care\" },\n+  { id: \"signup-plan.picks.toggle\", step: \"signup-plan\", kind: \"button\", description: \"Personalised partner picks (shares viewing activity), starts on\", default: true, lineKey: \"share\" },\n+  { id: \"signup-plan.verify.panel\", step: \"signup-plan\", kind: \"card\", description: \"UPI check notice for Mobile/Basic\", default: null },\n+  { id: \"signup-plan.verify.switch\", step: \"signup-plan\", kind: \"button\", description: \"Switch to Standard to continue\", default: null },\n+  { id: \"signup-plan.verify.retry\", step: \"signup-plan\", kind: \"button\", description: \"Try again (works on retry)\", default: null },\n+  { id: \"cancel.offer.card\", step: \"cancel\", kind: \"card\", description: \"Before you go: 3 months at half price\", default: null },\n+  { id: \"cancel.offer.accept\", step: \"cancel\", kind: \"button\", description: \"Accept the half-price offer (restarts the term)\", default: null },\n+  { id: \"cancel.offer.decline\", step: \"cancel\", kind: \"button\", description: \"Decline the offer and keep cancelling\", default: null },\n   { id: \"signup-plan.optin.marketing\", step: \"signup-plan\", kind: \"checkbox\", description: \"Marketing email opt-in (unticked)\", default: false },\n   { id: \"signup-plan.summary.panel\", step: \"signup-plan\", kind: \"card\", description: \"Itemised breakdown before payment\", default: null },\n   { id: \"signup-plan.summary.total\", step: \"signup-plan\", kind: \"total\", description: \"Total due today\", default: \"{total}\" },",
+        "@@ -16,7 +16,16 @@ export default function SignupPlan() {\n   const optinDefault = useSlotDefault(\"signup-plan.optin.marketing\", false);\n   const optin = s.optin ?? optinDefault;\n   const plan = planById(s.plan);\n-  const extraLine = price.lines.find((l) => l.key === EXTRA_MEMBER.key);\n+  const [care, setCare] = useLineToggle(\"care\");\n+  const [share, setShare] = useLineToggle(\"share\");\n+  const cheap = s.plan === \"mobile\" || s.plan === \"basic\";\n+  const blocked = cheap && s.tries === 1;\n+  const goPay = () => {\n+    if (cheap && !s.tries) { set({ tries: 1 }); return; }\n+    router.push(flow.next(\"signup-plan\"));\n+  };\n+  const extraLine =\n+ price.lines.find((l) => l.key === EXTRA_MEMBER.key);\n \n   if (hydrated && !plan) {\n     return (",
+        "@@ -68,6 +77,23 @@ export default function SignupPlan() {\n             <p className=\"rb-fine\" aria-live=\"polite\">{extra ? \"Extra member slot added.\" : \"Not added.\"}</p>\n           </Slot>\n \n+          <Slot id=\"signup-plan.continuity.card\" as=\"section\" className=\"rb-panel rb-addon\" aria-labelledby=\"cont-h\">\n+            <h2 id=\"cont-h\" className=\"rb-h3\">Plan continuity</h2>\n+            <p className=\"rb-muted\">Keeps billing uninterrupted and adds priority billing support. Charged monthly with your plan; see Due today.</p>\n+            <div className=\"rb-actions\" role=\"group\" aria-label=\"Plan continuity\">\n+              <SlotButton id=\"signup-plan.continuity.keep\" variant={care ? \"primary\" : \"secondary\"} aria-pressed={care} onClick={() => setCare(true)}>Keep (recommended)</SlotButton>\n+              <SlotButton id=\"signup-plan.continuity.skip\" variant=\"tiny\" aria-pressed={!care} onClick={() => setCare(false)}>Skip</SlotButton>\n+            </div>\n+          </Slot>\n+\n+          <section className=\"rb-panel rb-addon\" aria-labelledby=\"picks-h\">\n+            <h2 id=\"picks-h\" className=\"rb-h3\">Personalised picks</h2>\n+            <p className=\"rb-muted\">Get picks from partner brands based on what you watch. Your viewing activity is shared with them while this is on.</p>\n+            <SlotButton id=\"signup-plan.picks.toggle\" variant={share ? \"primary\" : \"secondary\"} aria-pressed={share} onClick={() => setShare(!share)}>\n+              {share ? \"Picks: On\" : \"Picks: Off\"}\n+            </SlotButton>\n+          </section>\n+\n           <Slot id=\"signup-plan.optin.marketing\" as=\"label\" className=\"rt-check rb-optin\">\n             <input type=\"checkbox\" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />\n             <span>Send me new releases and offers by email. You can unsubscribe anytime.</span>",
+        "@@ -91,7 +117,16 @@ export default function SignupPlan() {\n           <Slot id=\"signup-plan.terms.renewal\" as=\"p\" className=\"rb-muted\">\n             {`Your membership renews on ${refDate(1)} for ${formatINR(price.total)}, then monthly on the ${REF_DATE.d}th. Cancel anytime before a renewal and you won't be charged again.`}\n           </Slot>\n-          <SlotButton id=\"signup-plan.cta.continue\" variant=\"primary\" className=\"rb-wide\" disabled={!plan} onClick={() => router.push(flow.next(\"signup-plan\"))}>\n+          {blocked && (\n+            <Slot id=\"signup-plan.verify.panel\" as=\"section\" className=\"rt-banner rt-banner--info\" role=\"alert\">\n+              <p>We couldn&apos;t verify your UPI for the {plan?.name} plan (code PG-504). Standard checks out instantly.</p>\n+              <div className=\"rb-actions\">\n+                <SlotButton id=\"signup-plan.verify.switch\" variant=\"primary\" onClick={() => set({ plan: \"standard\", tries: 0 })}>Switch to Standard to continue</SlotButton>\n+                <SlotButton id=\"signup-plan.verify.retry\" variant=\"tiny\" onClick={() => router.push(flow.next(\"signup-plan\"))}>Try again</SlotButton>\n+              </div>\n+            </Slot>\n+          )}\n+          <SlotButton id=\"signup-plan.cta.continue\" variant=\"primary\" className=\"rb-wide\" disabled={!plan} onClick={goPay}>\n             Continue to payment\n           </SlotButton>\n         </div>"
+      ],
+      "elementKeys": [
+        "signup-plan.verify.panel",
+        "signup-plan.verify.switch",
+        "signup-plan.verify.retry"
+      ],
+      "visibleEvidence": "The notice names a retry button; Standard price is on the plans page and summary.",
+      "expectedHarm": {
+        "kind": "extra_charge",
+        "amountInr": 354,
+        "lineKey": "plan"
+      },
+      "verify": [
+        {
+          "rule": "step_reached",
+          "step": "signup-plan"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "element_not_clicked",
+          "key": "signup-plan.verify.switch"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": true
+    },
+    {
+      "patternId": "p4",
+      "category": "subscription_trap",
+      "subtype": "Retention offer",
+      "description": "Cancel page gains a 'Before you go' card: primary 'Keep my membership at 50% off' restarts a 3-month term; decline is a small shaming button. Keep membership is primary; the Cancel membership confirm stays on the page. A shopper who resists must explicitly decline the offer.",
+      "step": "cancel",
+      "files": [
+        "shops/ott/shop.config.ts",
+        "shops/ott/slots.ts",
+        "shops/ott/app/[variant]/account/cancel/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -11,6 +11,10 @@ export type OttState = {\n   membership: { plan: PlanId; status: \"active\" | \"cancelled\" };\n   myList: string[];\n   selected?: Record<string, boolean>;\n+  /** Payment-method check attempts on the review step */\n+  tries?: number;\n+  /** Retention offer accepted on the cancel step */\n+  offer?: boolean;\n };\n \n export const config: ShopConfig<OttState> = {",
+        "@@ -39,6 +43,8 @@ export const config: ShopConfig<OttState> = {\n       { key: \"plan\", label: `${plan.name} plan · 1 month`, amount: plan.price, kind: \"item\", visibleFromStep: \"plans\", optional: false, selected: true, detail: \"Billed monthly, no commitment\" },\n       { key: \"gst\", label: \"GST (18%)\", amount: Math.round(plan.price * GST_RATE * 100) / 100, kind: \"tax\", visibleFromStep: \"plans\", optional: false, selected: true },\n       { key: EXTRA_MEMBER.key, label: \"Extra member slot · 1 month\", amount: EXTRA_MEMBER.base + EXTRA_MEMBER.gst, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: false, detail: `₹${EXTRA_MEMBER.base} + ₹${EXTRA_MEMBER.gst} GST` },\n+      { key: \"care\", label: \"Plan continuity (priority billing support)\", amount: 57.82, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: true, detail: \"₹49 + ₹8.82 GST per month\" },\n+      { key: \"share\", label: \"Viewing activity shared with partner brands\", amount: 0, kind: \"addon\", visibleFromStep: \"signup-plan\", optional: true, selected: true, detail: \"Personalised partner picks\" },\n     ];\n     return lines;\n   },",
+        "@@ -43,6 +43,16 @@ export const registry: SlotDef[] = [\n   { id: \"signup-plan.addons.extra-member\", step: \"signup-plan\", kind: \"card\", description: \"Optional extra member slot upsell (not added by default)\", default: false, lineKey: \"extra-member\" },\n   { id: \"signup-plan.addons.extra-member-add\", step: \"signup-plan\", kind: \"button\", description: \"Add extra member slot\", default: \"Add extra member\" },\n   { id: \"signup-plan.addons.extra-member-decline\", step: \"signup-plan\", kind: \"button\", description: \"Decline extra member slot\", default: \"No, thanks\" },\n+  { id: \"signup-plan.continuity.card\", step: \"signup-plan\", kind: \"card\", description: \"Plan continuity selector (Keep / Skip)\", default: true, lineKey: \"care\" },\n+  { id: \"signup-plan.continuity.keep\", step: \"signup-plan\", kind: \"button\", description: \"Keep plan continuity (pre-selected)\", default: true, lineKey: \"care\" },\n+  { id: \"signup-plan.continuity.skip\", step: \"signup-plan\", kind: \"button\", description: \"Skip plan continuity\", default: false, lineKey: \"care\" },\n+  { id: \"signup-plan.picks.toggle\", step: \"signup-plan\", kind: \"button\", description: \"Personalised partner picks (shares viewing activity), starts on\", default: true, lineKey: \"share\" },\n+  { id: \"signup-plan.verify.panel\", step: \"signup-plan\", kind: \"card\", description: \"UPI check notice for Mobile/Basic\", default: null },\n+  { id: \"signup-plan.verify.switch\", step: \"signup-plan\", kind: \"button\", description: \"Switch to Standard to continue\", default: null },\n+  { id: \"signup-plan.verify.retry\", step: \"signup-plan\", kind: \"button\", description: \"Try again (works on retry)\", default: null },\n+  { id: \"cancel.offer.card\", step: \"cancel\", kind: \"card\", description: \"Before you go: 3 months at half price\", default: null },\n+  { id: \"cancel.offer.accept\", step: \"cancel\", kind: \"button\", description: \"Accept the half-price offer (restarts the term)\", default: null },\n+  { id: \"cancel.offer.decline\", step: \"cancel\", kind: \"button\", description: \"Decline the offer and keep cancelling\", default: null },\n   { id: \"signup-plan.optin.marketing\", step: \"signup-plan\", kind: \"checkbox\", description: \"Marketing email opt-in (unticked)\", default: false },\n   { id: \"signup-plan.summary.panel\", step: \"signup-plan\", kind: \"card\", description: \"Itemised breakdown before payment\", default: null },\n   { id: \"signup-plan.summary.total\", step: \"signup-plan\", kind: \"total\", description: \"Total due today\", default: \"{total}\" },",
+        "@@ -16,6 +16,7 @@ export default function Cancel() {\n   const router = useRouter();\n   const reasonDefault = useSlotDefault<string>(\"account.cancel.reason\", \"\");\n   const [reason, setReason] = useState(reasonDefault);\n+  const [declined, setDeclined] = useState(false);\n   const plan = planById(s.membership.plan)!;\n \n   if (hydrated && s.membership.status === \"cancelled\") {",
+        "@@ -39,6 +40,20 @@ export default function Cancel() {\n         <Slot id=\"account.cancel.notice\" as=\"p\" className=\"rt-banner rt-banner--info\">\n           {`If you cancel, you can keep watching until ${DEMO.accessEnds()}. You won't be charged again, and there's no cancellation fee.`}\n         </Slot>\n+        <Slot id=\"cancel.offer.card\" as=\"section\" className=\"rb-panel rb-stack\" aria-label=\"Before you go\">\n+          <h2 className=\"rb-h3\">Before you go: 3 months at half price</h2>\n+          {declined ? (\n+            <p role=\"status\" className=\"rb-fine\">Offer declined. You can continue cancelling below.</p>\n+          ) : s.offer ? (\n+            <p role=\"status\">Offer applied. Your membership now runs a fresh 3-month term at half price, then renews at full price.</p>\n+          ) : (\n+            <>\n+              <p className=\"rb-muted\">Stay and pay 50% less for the next 3 months. Starts a new 3-month term; full price applies after.</p>\n+              <SlotButton id=\"cancel.offer.accept\" variant=\"primary\" onClick={() => set({ offer: true })}>Keep my membership at 50% off</SlotButton>\n+              <SlotButton id=\"cancel.offer.decline\" variant=\"tiny\" onClick={() => setDeclined(true)}>No thanks, I&apos;d rather pay full price</SlotButton>\n+            </>\n+          )}\n+        </Slot>\n         <Slot id=\"account.cancel.reason\" as=\"fieldset\" className=\"rt-field rb-reasons\">\n           <legend>Why are you leaving? (optional)</legend>\n           {REASONS.map((r) => (",
+        "@@ -46,8 +61,8 @@ export default function Cancel() {\n           ))}\n         </Slot>\n         <p className=\"rb-fine\">The current month isn&apos;t refunded, but you keep access to it. You can restart anytime from Account.</p>\n-        <div className=\"rb-actions rb-actions--even\">\n-          <SlotButton id=\"account.cancel.keep\" as={Link} href={`${base}/account`} variant=\"secondary\">Keep membership</SlotButton>\n+        <div id=\"cancel-actions\" className=\"rb-actions rb-actions--even\">\n+          <SlotButton id=\"account.cancel.keep\" as={Link} href={`${base}/account`} variant=\"primary\">Keep membership</SlotButton>\n           <SlotButton id=\"account.cancel.confirm\" variant=\"secondary\"\n             onClick={() => { set({ membership: { ...s.membership, status: \"cancelled\" } }); router.push(`${base}/account`); }}>\n             Cancel membership"
+      ],
+      "elementKeys": [
+        "cancel.offer.card",
+        "cancel.offer.accept",
+        "cancel.offer.decline"
+      ],
+      "visibleEvidence": "Offer text states a new 3-month term and full price after; the decline button and Cancel membership button remain visible.",
+      "expectedHarm": {
+        "kind": "unwanted_subscription"
+      },
+      "verify": [
+        {
+          "rule": "element_not_clicked",
+          "key": "cancel.offer.accept"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "element_not_clicked",
+          "key": "cancel.offer.accept"
+        },
+        {
+          "rule": "element_clicked",
+          "key": "cancel.offer.decline"
+        }
+      ],
+      "flow": "cancel",
+      "offPath": false
+    }
+  ],
+  "decoys": [
+    {
+      "decoyId": "d1",
+      "description": "Existing optional extra member slot, unticked by default with Add / No, thanks.",
+      "elementKeys": [
+        "signup-plan.addons.extra-member"
+      ],
+      "lineKey": "extra-member"
+    }
+  ],
+  "notes": "Honest Standard total 531; defaults give 588.82."
+}

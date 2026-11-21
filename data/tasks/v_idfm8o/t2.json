@@ -1,0 +1,11 @@
+{
+  "taskId": "t2",
+  "variantId": "v_idfm8o",
+  "goal": "I'd like to try the All Apps plan free for the 14 days first. Get the trial started.",
+  "persona": "Student exploring creative tools",
+  "startPath": "/honest/pricing",
+  "constraints": {
+    "budgetInr": 0
+  },
+  "stopCondition": "payment_page"
+}

@@ -19,6 +19,7 @@
     "test": "playwright test",
     "riptide": "tsx --env-file-if-exists=.env engine/cli.ts",
     "agents": "trap 'kill 0' INT TERM; for a in alpha:41001 beta:41002 gamma:41003 delta:41004; do tsx --env-file-if-exists=.env engine/agents/reference/server.ts --config ${a%:*} --port ${a#*:} & done; wait",
+    "agents:grid": "trap 'kill 0' INT TERM; for a in beta,azure/gpt-5,41011 beta,bedrock/global.anthropic.claude-haiku-5-5,41012 delta,azure/gpt-5,41013 delta,bedrock/global.anthropic.claude-haiku-5-5,41014; do c=${a%%,*}; r=${a#*,}; tsx --env-file-if-exists=.env engine/agents/reference/server.ts --config $c --model ${r%,*} --port ${r##*,} & done; wait",
     "console": "npm run dev -w console",
     "readme:headings": "node docs/assets/headings/render.mjs",
     "readme:shops": "node docs/assets/shops/render.mjs"

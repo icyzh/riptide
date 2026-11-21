@@ -1,0 +1,11 @@
+{
+  "taskId": "t2",
+  "variantId": "v_76j1xg",
+  "goal": "I only watch on my phone, so get me the cheapest Reelbox plan that works for that. Use the demo email.",
+  "persona": "Commuter in Pune",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 250
+  },
+  "stopCondition": "payment_page"
+}

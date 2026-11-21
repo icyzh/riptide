@@ -1,0 +1,11 @@
+{
+  "taskId": "t1",
+  "variantId": "v_nuhqds",
+  "goal": "Book a one-way flight from New Delhi to Mumbai for tomorrow for one adult on the cheapest Saver fare. Use the saved traveller details and get me to payment.",
+  "persona": "Student on a budget, booking on a phone",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 9000
+  },
+  "stopCondition": "payment_page"
+}

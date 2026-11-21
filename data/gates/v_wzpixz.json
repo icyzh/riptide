@@ -1,0 +1,32 @@
+{
+  "variantId": "v_wzpixz",
+  "passed": true,
+  "gates": [
+    {
+      "gate": "scope",
+      "passed": true
+    },
+    {
+      "gate": "telltale",
+      "passed": true
+    },
+    {
+      "gate": "build",
+      "passed": true
+    },
+    {
+      "gate": "record",
+      "passed": true
+    },
+    {
+      "gate": "smoke",
+      "passed": true
+    },
+    {
+      "gate": "verify",
+      "passed": true,
+      "detail": "run r_q4trga1n4y, honest total 531: p1 line_present: ok (assure in final payment); p1 total_delta_from_honest: ok (delta 57.82 vs [57.82, 57.82]); p1 avoid: ok (a passive shopper is caught); p2 step_reached: ok (step signup-plan reached); p2 avoid: not checked (offPath: the driver walk never makes this choice); p3 element_not_clicked: ok (account.cancel.offer-accept clicked 0x); p3 avoid: ok (a passive shopper is caught); p1 careful: not checked (avoid rules other than element_toggled); p3 careful: not checked (avoid rules other than element_toggled)"
+    }
+  ],
+  "attempt": 2
+}

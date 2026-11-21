@@ -1,0 +1,11 @@
+{
+  "taskId": "t2",
+  "variantId": "v_r9o7ee",
+  "goal": "I want to try All Apps free for the 14 days first, no payment today please. Take me to the payment page when it's ready.",
+  "persona": "Student starting a design course",
+  "startPath": "/honest/pricing",
+  "constraints": {
+    "budgetInr": 100
+  },
+  "stopCondition": "payment_page"
+}

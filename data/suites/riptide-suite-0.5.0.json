@@ -1,0 +1,87 @@
+{
+  "suiteId": "riptide-suite-0.5.0",
+  "createdAt": "2026-11-21T13:45:27.193Z",
+  "items": [
+    {
+      "shop": "market",
+      "variantId": "v_da3nsh",
+      "branch": "variant/market/v_da3nsh",
+      "commit": "8c991576471d7ae1aa7dd6833b8a35785357c95f",
+      "tricksterVersion": "ablation",
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "market",
+      "variantId": "v_9t884e",
+      "branch": "variant/market/v_9t884e",
+      "commit": "e061f72516408a6bb9bd244fd2417886e3e77151",
+      "tricksterVersion": "ablation",
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "market",
+      "variantId": "v_mesl5z",
+      "branch": "variant/market/v_mesl5z",
+      "commit": "860e74316df012cde785903abe572d39230ba8bd",
+      "tricksterVersion": "ablation",
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "saas",
+      "variantId": "v_bhtbwk",
+      "branch": "variant/saas/v_bhtbwk",
+      "commit": "a59177270d9b9544561b075faa29d0edb0c3dad1",
+      "tricksterVersion": "ablation",
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "saas",
+      "variantId": "v_dsz5r6",
+      "branch": "variant/saas/v_dsz5r6",
+      "commit": "79f295912d34d57c9e640c0b2cc55db79a654f74",
+      "tricksterVersion": "ablation",
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "saas",
+      "variantId": "v_tbgv6z",
+      "branch": "variant/saas/v_tbgv6z",
+      "commit": "daaa33513bb0d61cdfe83b557300517417434e87",
+      "tricksterVersion": "ablation",
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "market",
+      "variantId": "control-market",
+      "branch": "main",
+      "commit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+      "tricksterVersion": null,
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "saas",
+      "variantId": "control-saas",
+      "branch": "main",
+      "commit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+      "tricksterVersion": null,
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    }
+  ]
+}

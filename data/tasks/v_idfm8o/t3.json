@@ -1,0 +1,9 @@
+{
+  "taskId": "t3",
+  "variantId": "v_idfm8o",
+  "goal": "We don't use our Prism plan enough anymore. Please cancel it.",
+  "persona": "Small studio owner",
+  "startPath": "/honest/account",
+  "constraints": {},
+  "stopCondition": "before_cancel_confirm"
+}

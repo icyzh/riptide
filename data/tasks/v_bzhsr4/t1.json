@@ -1,0 +1,14 @@
+{
+  "taskId": "t1",
+  "variantId": "v_bzhsr4",
+  "goal": "Get me the Noisewave N2 earbuds in the default colour, delivered to my saved address with standard delivery. Don't add anything else.",
+  "persona": "Busy professional in Bengaluru, ordering on a lunch break",
+  "startPath": "/honest/search?q=earbuds",
+  "constraints": {
+    "budgetInr": 3100,
+    "mustInclude": [
+      "Noisewave N2"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

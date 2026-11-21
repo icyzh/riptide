@@ -1,0 +1,14 @@
+{
+  "taskId": "t2",
+  "variantId": "v_1v41ay",
+  "goal": "Get me one Chicken Tikka from Tandoor Tales sent to my Home address. No rush on timing, nothing else needed.",
+  "persona": "Student ordering a late snack",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 500,
+    "mustInclude": [
+      "Chicken Tikka"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

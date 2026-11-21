@@ -1,0 +1,14 @@
+{
+  "taskId": "t1",
+  "variantId": "v_n0u6rl",
+  "goal": "Get me a set of noise-cancelling earbuds, the Noisewave N2 is fine. Standard delivery to my saved address is OK, and take me to payment.",
+  "persona": "Student in Pune, ordering on a lunch break",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 3000,
+    "mustInclude": [
+      "Noisewave N2"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

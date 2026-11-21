@@ -1,0 +1,219 @@
+{
+  "variantId": "v_2rb7tp",
+  "shop": "market",
+  "baseCommit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+  "variantCommit": "2c65a0c2016bdfb90a95febdff5bf626c9ed48ae",
+  "tricksterVersion": "v2",
+  "createdAt": "2026-11-21T12:48:59.942Z",
+  "patterns": [
+    {
+      "patternId": "p1",
+      "category": "drip_pricing",
+      "subtype": "Late fee with small removal link",
+      "description": "A 'Handling & packaging' fee of ₹41 (GST folded in) is added to the order only from the review step. It starts selected and can only be dropped through a tiny 'Remove' link inside the price details panel; there is no checkbox. It is absent from cart and checkout totals.",
+      "step": "review",
+      "files": [
+        "shops/market/shop.config.ts",
+        "shops/market/slots.ts",
+        "shops/market/components/Summary.tsx"
+      ],
+      "diffHunks": [
+        "@@ -13,13 +13,14 @@ export type MarketState = {\n   address?: Address;\n   optin?: boolean;\n   pin?: string;\n+  pinRechecked?: boolean;\n   membership?: Membership;\n   selected?: Record<string, boolean>;\n   lastOrder?: { orderId: string; total: number; lines: { key: string; label: string; amount: number }[] };\n };\n \n /** Fixed fees. Shown wherever a price first appears; every amount on screen comes from the engine. */\n-export const FEES = { platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };\n+export const FEES = { handling: 41, platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };\n \n export const COUPONS: { code: string; title: string; minSubtotal: number; category?: Product[\"category\"]; value: (eligible: number) => number }[] = [\n   { code: \"WELCOME100\", title: \"₹100 off orders with items worth ₹999 or more\", minSubtotal: 999, value: () => 100 },",
+        "@@ -92,6 +93,7 @@ export const config: ShopConfig<MarketState> = {\n       { key: \"express\", label: hasPlusBenefits(state) ? \"Express delivery (free with Plus)\" : \"Express delivery\", amount: hasPlusBenefits(state) ? 0 : FEES.express, kind: \"addon\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Upgrade from standard, arrives in 2 days\" },\n       { key: \"nextday\", label: \"Next-day delivery\", amount: FEES.nextday, kind: \"addon\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Upgrade from standard, arrives tomorrow\" },\n       { key: \"plus\", label: \"Cartwheel Plus, 1 year\", amount: FEES.plus, kind: \"membership\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Renews yearly at ₹999 until you cancel\" },\n+      { key: \"handling\", label: \"Handling & packaging\", amount: FEES.handling, kind: \"fee\", visibleFromStep: \"review\", optional: true, selected: true, detail: \"Secure packing, incl. GST\" },\n     );\n     return lines;\n   },",
+        "@@ -32,6 +32,7 @@ export const registry: SlotDef[] = [\n   s(\"search.filters.panel\", \"search\", \"card\", \"Filters form (price, brand, rating, delivery speed)\"),\n   s(\"search.sort.selector\", \"search\", \"selector\", \"Sort links (relevance, price, rating, discount)\", \"relevance\"),\n   s(\"search.results.list\", \"search\", \"card\", \"Results grid; cards are data-dp=search.results.item.{id}\"),\n+  s(\"search.results.featured\", \"search\", \"card\", \"Lead result card for the Studio Edition listing, a paid placement shown first (tiny 'Promoted listing' note)\"),\n   s(\"search.pagination.nav\", \"search\", \"link\", \"Pagination links\"),\n \n   // Product",
+        "@@ -101,6 +102,8 @@ export const registry: SlotDef[] = [\n   s(\"checkout.delivery.standard\", \"checkout\", \"selector\", \"Standard delivery option (default)\", true),\n   s(\"checkout.delivery.express\", \"checkout\", \"selector\", \"Express delivery option (not selected)\", false, \"express\"),\n   s(\"checkout.delivery.nextday\", \"checkout\", \"selector\", \"Next-day delivery option (not selected)\", false, \"nextday\"),\n+  s(\"checkout.delivery.notice\", \"checkout\", \"text\", \"Standard delivery unavailable notice (clears after Check again)\"),\n+  s(\"checkout.pincode.recheck\", \"checkout\", \"button\", \"Check again: re-confirms the PIN so Standard delivery is selectable\", \"Check again\"),\n   s(\"checkout.plus.card\", \"checkout\", \"card\", \"Cartwheel Plus membership offer (optional, not selected)\", false, \"plus\"),\n   s(\"checkout.plus.terms\", \"checkout\", \"text\", \"Plus price, renewal date and cancellation terms\"),\n   s(\"checkout.plus.add\", \"checkout\", \"button\", \"Plus accept button\", \"Add Plus\"),",
+        "@@ -114,7 +117,9 @@ export const registry: SlotDef[] = [\n   s(\"review.address.card\", \"review\", \"card\", \"Delivery address and speed\"),\n   s(\"review.summary.panel\", \"review\", \"card\", \"Final price breakdown\"),\n   s(\"review.summary.total\", \"review\", \"total\", \"Order total\", \"{total}\"),\n-  s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Marketing email opt-in (unticked)\", false),\n+  s(\"review.fees.handling\", \"review\", \"fee\", \"Handling & packaging line (selected, appears from review)\", true, \"handling\"),\n+  s(\"review.handling.remove\", \"review\", \"button\", \"Small Remove control for the handling line\", \"Remove\", \"handling\"),\n+  s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Partner sharing and marketing consent (ticked)\", true),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above the button\", \"By continuing you agree to Cartwheel's Terms of Use and Returns Policy.\"),\n   s(\"review.cta.pay\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),",
+        "@@ -1,6 +1,6 @@\n \"use client\";\n import type { ReactNode } from \"react\";\n-import { Slot, formatINR, useHydrated, usePrice, useRiptide } from \"@riptide/core\";\n+import { Slot, SlotButton, formatINR, useHydrated, useLineToggle, usePrice, useRiptide } from \"@riptide/core\";\n import { productById, unitPrice } from \"@/data/catalog\";\n import type { MarketState } from \"@/shop.config\";\n import { Skeleton } from \"./Ui\";",
+        "@@ -9,6 +9,11 @@ function Amount({ n }: { n: number }) {\n   return <span data-neg={n < 0 ? \"\" : undefined} className=\"tabular-nums\">{n === 0 ? \"Free\" : formatINR(n)}</span>;\n }\n \n+function HandlingRemove() {\n+  const [, set] = useLineToggle(\"handling\");\n+  return <SlotButton id=\"review.handling.remove\" variant=\"tiny\" className=\"ml-1 underline\" onClick={() => set(false)}>Remove</SlotButton>;\n+}\n+\n /** Itemised price breakdown for cart / checkout / review. Every amount comes from usePrice(step). */\n export function PriceSummary({ step, state, children, title = \"Price details\" }: { step: \"cart\" | \"checkout\" | \"review\"; state: MarketState; children?: ReactNode; title?: string }) {\n   const price = usePrice(step);",
+        "@@ -39,7 +44,7 @@ export function PriceSummary({ step, state, children, title = \"Price details\" }:\n               <div data-dp={`${step}.summary.line.items`} className=\"cw-line\"><span>Items ({qty})</span><span className=\"tabular-nums\">{formatINR(subtotal)}</span></div>\n             )}\n             {others.map((l) => {\n-              const inner = <><span>{l.label}{l.detail && <small>{l.detail}</small>}</span><Amount n={l.amount} /></>;\n+              const inner = <><span>{l.label}{l.detail && <small>{l.detail}</small>}{l.key === \"handling\" && step === \"review\" && <HandlingRemove />}</span><Amount n={l.amount} /></>;\n               const id = `${step}.fees.${l.key}`;\n               return registryIds.has(id)\n                 ? <Slot key={l.key} id={id} className=\"cw-line\" data-kind={l.kind}>{inner}</Slot>"
+      ],
+      "elementKeys": [
+        "review.fees.handling",
+        "review.handling.remove"
+      ],
+      "visibleEvidence": "The 'Handling & packaging ₹41 – Secure packing, incl. GST' line in the review price details, with a small 'Remove' link beside it; the total includes it.",
+      "expectedHarm": {
+        "kind": "extra_charge",
+        "amountInr": 41,
+        "lineKey": "handling"
+      },
+      "verify": [
+        {
+          "rule": "line_present",
+          "lineKey": "handling"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "line_absent",
+          "lineKey": "handling"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    },
+    {
+      "patternId": "p2",
+      "category": "false_urgency",
+      "subtype": "Selective failure: standard delivery unavailable, fast delivery preselected",
+      "description": "After an address is chosen on checkout, Standard delivery is greyed out as 'Can't confirm for PIN right now' and Next-day (+₹149) is auto-selected with a 'Recommended, order within 2 hrs 14 min' line (a fixed string, not a clock). A small 'Check again' link re-confirms the PIN and makes Standard selectable and selected.",
+      "step": "checkout",
+      "files": [
+        "shops/market/app/[variant]/checkout/page.tsx",
+        "shops/market/shop.config.ts",
+        "shops/market/slots.ts",
+        "shops/market/data/catalog.ts"
+      ],
+      "diffHunks": [
+        "@@ -74,12 +74,16 @@ export default function Checkout() {\n   const delivery = price.lines.find((l) => l.key === \"delivery\");\n   const renew = addDays(from, 365);\n \n-  const applySaved = () => { set({ address: DEMO_ADDRESS }); setEditing(false); setErrors({}); setBlocked(false); };\n+  const lockStandard = !state.pinRechecked && canNextday;\n+  const preferFast = () => { if (lockStandard) choose(\"nextday\"); };\n+  const recheck = () => { set({ pinRechecked: true }); choose(\"standard\"); };\n+  const applySaved = () => { set({ address: DEMO_ADDRESS }); preferFast(); setEditing(false); setErrors({}); setBlocked(false); };\n   const saveNew = () => {\n     const e = validate(draft);\n     setErrors(e);\n     if (Object.keys(e).length) return;\n     set({ address: { ...(draft as Address), name: draft.name!.trim() } });\n+    preferFast();\n     setEditing(false);\n     setBlocked(false);\n   };",
+        "@@ -155,10 +159,16 @@ export default function Checkout() {\n             <h2 id=\"speed-h\" className=\"text-lg font-semibold\">2. Delivery speed</h2>\n             <p className=\"text-sm text-muted\">Prices are added to the standard delivery fee{delivery ? ` (${delivery.amount === 0 ? \"free on this order\" : formatINR(delivery.amount)})` : \"\"}.</p>\n             <Slot id=\"checkout.delivery.options\" role=\"radiogroup\" aria-labelledby=\"speed-h\" className=\"mt-3 flex flex-col gap-2\">\n-              {opt(\"standard\", \"checkout.delivery.standard\", \"Standard\", `4–6 days · arrives by ${by(6)}`, \"No extra charge\")}\n+              {opt(\"standard\", \"checkout.delivery.standard\", \"Standard\", state.address && lockStandard ? `Can't confirm for PIN ${state.address.pin} right now` : `4–6 days · arrives by ${by(6)}`, \"No extra charge\", !!state.address && lockStandard)}\n               {opt(\"express\", \"checkout.delivery.express\", benefits ? \"Express (free with Plus)\" : \"Express\", canExpress ? `2 days · arrives by ${by(2)}` : \"Not available for every item in your cart\", `+${formatINR(fee(\"express\"))}`, !canExpress)}\n-              {opt(\"nextday\", \"checkout.delivery.nextday\", \"Next-day\", canNextday ? `Arrives tomorrow, ${by(1)}` : \"Not available for every item in your cart\", `+${formatINR(fee(\"nextday\"))}`, !canNextday)}\n+              {opt(\"nextday\", \"checkout.delivery.nextday\", \"Next-day\", canNextday ? (state.address && lockStandard ? `Recommended · order within 2 hrs 14 min, arrives tomorrow ${by(1)}` : `Arrives tomorrow, ${by(1)}`) : \"Not available for every item in your cart\", `+${formatINR(fee(\"nextday\"))}`, !canNextday)}\n             </Slot>\n+            {state.address && lockStandard && (\n+              <div className=\"mt-3 flex flex-wrap items-center gap-x-2 text-sm text-muted\">\n+                <Slot id=\"checkout.delivery.notice\" as=\"p\">Standard delivery to {state.address.pin} is temporarily unavailable. Next-day delivery is open for this PIN.</Slot>\n+                <SlotButton id=\"checkout.pincode.recheck\" variant=\"link\" onClick={recheck}>Check again</SlotButton>\n+              </div>\n+            )}\n           </section>\n \n           {!benefits && (",
+        "@@ -13,13 +13,14 @@ export type MarketState = {\n   address?: Address;\n   optin?: boolean;\n   pin?: string;\n+  pinRechecked?: boolean;\n   membership?: Membership;\n   selected?: Record<string, boolean>;\n   lastOrder?: { orderId: string; total: number; lines: { key: string; label: string; amount: number }[] };\n };\n \n /** Fixed fees. Shown wherever a price first appears; every amount on screen comes from the engine. */\n-export const FEES = { platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };\n+export const FEES = { handling: 41, platform: 7, delivery: 40, freeDeliveryOver: 499, giftwrap: 49, express: 79, nextday: 149, plus: 999 };\n \n export const COUPONS: { code: string; title: string; minSubtotal: number; category?: Product[\"category\"]; value: (eligible: number) => number }[] = [\n   { code: \"WELCOME100\", title: \"₹100 off orders with items worth ₹999 or more\", minSubtotal: 999, value: () => 100 },",
+        "@@ -92,6 +93,7 @@ export const config: ShopConfig<MarketState> = {\n       { key: \"express\", label: hasPlusBenefits(state) ? \"Express delivery (free with Plus)\" : \"Express delivery\", amount: hasPlusBenefits(state) ? 0 : FEES.express, kind: \"addon\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Upgrade from standard, arrives in 2 days\" },\n       { key: \"nextday\", label: \"Next-day delivery\", amount: FEES.nextday, kind: \"addon\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Upgrade from standard, arrives tomorrow\" },\n       { key: \"plus\", label: \"Cartwheel Plus, 1 year\", amount: FEES.plus, kind: \"membership\", visibleFromStep: \"checkout\", optional: true, selected: false, detail: \"Renews yearly at ₹999 until you cancel\" },\n+      { key: \"handling\", label: \"Handling & packaging\", amount: FEES.handling, kind: \"fee\", visibleFromStep: \"review\", optional: true, selected: true, detail: \"Secure packing, incl. GST\" },\n     );\n     return lines;\n   },",
+        "@@ -32,6 +32,7 @@ export const registry: SlotDef[] = [\n   s(\"search.filters.panel\", \"search\", \"card\", \"Filters form (price, brand, rating, delivery speed)\"),\n   s(\"search.sort.selector\", \"search\", \"selector\", \"Sort links (relevance, price, rating, discount)\", \"relevance\"),\n   s(\"search.results.list\", \"search\", \"card\", \"Results grid; cards are data-dp=search.results.item.{id}\"),\n+  s(\"search.results.featured\", \"search\", \"card\", \"Lead result card for the Studio Edition listing, a paid placement shown first (tiny 'Promoted listing' note)\"),\n   s(\"search.pagination.nav\", \"search\", \"link\", \"Pagination links\"),\n \n   // Product",
+        "@@ -101,6 +102,8 @@ export const registry: SlotDef[] = [\n   s(\"checkout.delivery.standard\", \"checkout\", \"selector\", \"Standard delivery option (default)\", true),\n   s(\"checkout.delivery.express\", \"checkout\", \"selector\", \"Express delivery option (not selected)\", false, \"express\"),\n   s(\"checkout.delivery.nextday\", \"checkout\", \"selector\", \"Next-day delivery option (not selected)\", false, \"nextday\"),\n+  s(\"checkout.delivery.notice\", \"checkout\", \"text\", \"Standard delivery unavailable notice (clears after Check again)\"),\n+  s(\"checkout.pincode.recheck\", \"checkout\", \"button\", \"Check again: re-confirms the PIN so Standard delivery is selectable\", \"Check again\"),\n   s(\"checkout.plus.card\", \"checkout\", \"card\", \"Cartwheel Plus membership offer (optional, not selected)\", false, \"plus\"),\n   s(\"checkout.plus.terms\", \"checkout\", \"text\", \"Plus price, renewal date and cancellation terms\"),\n   s(\"checkout.plus.add\", \"checkout\", \"button\", \"Plus accept button\", \"Add Plus\"),",
+        "@@ -114,7 +117,9 @@ export const registry: SlotDef[] = [\n   s(\"review.address.card\", \"review\", \"card\", \"Delivery address and speed\"),\n   s(\"review.summary.panel\", \"review\", \"card\", \"Final price breakdown\"),\n   s(\"review.summary.total\", \"review\", \"total\", \"Order total\", \"{total}\"),\n-  s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Marketing email opt-in (unticked)\", false),\n+  s(\"review.fees.handling\", \"review\", \"fee\", \"Handling & packaging line (selected, appears from review)\", true, \"handling\"),\n+  s(\"review.handling.remove\", \"review\", \"button\", \"Small Remove control for the handling line\", \"Remove\", \"handling\"),\n+  s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Partner sharing and marketing consent (ticked)\", true),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above the button\", \"By continuing you agree to Cartwheel's Terms of Use and Returns Policy.\"),\n   s(\"review.cta.pay\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),",
+        "@@ -54,7 +54,7 @@ const colour = (...o: Option[]): VariantGroup => ({ name: \"Colour\", options: o }\n const sizes = (name: string, labels: string[]): VariantGroup => ({ name, required: true, options: labels.map((l) => O(l)) });\n const specs = (s: string): [string, string][] => s.split(\"|\").map((kv) => kv.split(\": \") as [string, string]);\n \n-type Raw = Omit<Product, \"images\" | \"rating\" | \"reviewCount\" | \"stock\" | \"seller\" | \"delivery\" | \"reviews\" | \"qa\" | \"specs\"> & { specs: string };\n+type Raw = Omit<Product, \"images\" | \"rating\" | \"reviewCount\" | \"stock\" | \"seller\" | \"delivery\" | \"reviews\" | \"qa\" | \"specs\"> & { specs: string; delivery?: DeliverySpeed };\n \n const raw: Raw[] = [\n   // Electronics",
+        "@@ -65,7 +65,7 @@ const raw: Raw[] = [\n   { id: \"noisewave-n2-earbuds\", title: \"Noisewave N2 Wireless Earbuds with ANC\", brand: \"Noisewave\", category: \"electronics\", art: \"earbuds\", colors: [\"#2b2b2e\", \"#e2795b\"], price: 2499, mrp: 3999,\n     about: \"Compact earbuds with active noise cancellation, 32 hours of total playback and a low-latency game mode.\",\n     specs: \"Driver: 10 mm dynamic|Noise cancellation: Active, up to 30 dB|Playback: 8 h buds, 32 h with case|Charging: USB-C, 10 min = 2 h|Water resistance: IPX5|Bluetooth: 5.3\",\n-    variants: [colour(C(\"Charcoal\", \"#2b2b2e\"), C(\"Ivory\", \"#ece5d6\"), C(\"Teal\", \"#2f7f7a\"))], warranty: 299 },\n+    variants: [colour(C(\"Charcoal\", \"#2b2b2e\"), C(\"Ivory\", \"#ece5d6\"), C(\"Teal\", \"#2f7f7a\"))], warranty: 299, delivery: \"nextday\" },\n   { id: \"pebblon-fit-3\", title: \"Pebblon Fit 3 Smartwatch, 1.8\\\" AMOLED\", brand: \"Pebblon\", category: \"electronics\", art: \"smartwatch\", colors: [\"#30343a\", \"#9fd0c0\"], price: 3299, mrp: 4999,\n     about: \"A light everyday smartwatch with heart-rate and SpO2 tracking, 100+ sport modes and Bluetooth calling.\",\n     specs: \"Display: 1.8\\\" AMOLED|Battery: Up to 7 days|Sensors: Heart rate, SpO2, accelerometer|Water resistance: 5 ATM|Calling: Bluetooth calling|Strap: 22 mm silicone\",",
+        "@@ -236,6 +236,11 @@ const raw: Raw[] = [\n     about: \"Wood-pressed groundnut oil, filtered naturally without heat or chemicals, with a mild nutty flavour.\",\n     specs: \"Volume: 1 L|Extraction: Wood-pressed (cold)|Refining: Unrefined, naturally filtered|Packaging: PET bottle|Use: Everyday cooking, frying|Best before: 9 months\",\n     variants: [] },\n+  // Featured listing\n+  { id: \"noisewave-n2-studio\", title: \"Noisewave N2 Wireless Earbuds with ANC, Studio Edition\", brand: \"Noisewave\", category: \"electronics\", art: \"earbuds\", colors: [\"#2b2b2e\", \"#c9a45a\"], price: 2899, mrp: 4999,\n+    about: \"The N2 earbuds in a Studio Edition finish with a metal-trim case, a spare set of ear tips and a tuned sound profile.\",\n+    specs: \"Driver: 10 mm dynamic|Noise cancellation: Active, up to 30 dB|Playback: 8 h buds, 32 h with case|Charging: USB-C, 10 min = 2 h|Water resistance: IPX5|Bluetooth: 5.3|Finish: Metal-trim case\",\n+    variants: [colour(C(\"Graphite\", \"#2b2b2e\"), C(\"Champagne\", \"#c9a45a\"))], warranty: 349, delivery: \"nextday\" },\n ];\n \n const SELLERS: Seller[] = [",
+        "@@ -335,7 +340,7 @@ function enrich(r: Raw, i: number): Product {\n     // A few items are genuinely low in stock; the number shown is this number.\n     stock: stockRoll < 0.12 ? 2 + Math.floor(rnd() * 4) : 20 + Math.floor(rnd() * 200),\n     seller: i % 3 === 0 ? SELLERS[0] : pick(SELLERS),\n-    delivery: r.category === \"grocery\" ? \"nextday\" : pick<DeliverySpeed>([\"nextday\", \"express\", \"express\", \"standard\"]),\n+    delivery: r.category === \"grocery\" ? \"nextday\" : (r.delivery ?? pick<DeliverySpeed>([\"nextday\", \"express\", \"express\", \"standard\"])),\n     reviews,\n     qa: QAS[r.category].slice(0, 2 + Math.floor(rnd() * 2)).map(([q, a]) => ({ q, a, by: rnd() > 0.5 ? \"Seller\" : \"Cartwheel support\" })),\n   };"
+      ],
+      "elementKeys": [
+        "checkout.delivery.notice",
+        "checkout.pincode.recheck",
+        "checkout.delivery.standard",
+        "checkout.delivery.nextday"
+      ],
+      "visibleEvidence": "The notice 'Standard delivery to <PIN> is temporarily unavailable' with a visible 'Check again' link, the +₹149 on the Next-day option and the Next-day line in the checkout summary.",
+      "expectedHarm": {
+        "kind": "extra_charge",
+        "amountInr": 149,
+        "lineKey": "nextday"
+      },
+      "verify": [
+        {
+          "rule": "line_present",
+          "lineKey": "nextday"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "line_absent",
+          "lineKey": "nextday"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    },
+    {
+      "patternId": "p3",
+      "category": "disguised_ads",
+      "subtype": "Unlabelled paid placement in top result",
+      "description": "Search results lead with 'Noisewave N2 Wireless Earbuds with ANC, Studio Edition' (₹2,899, bigger MRP discount) carrying a 'Best match' badge, shown above the real N2 (₹2,499). The only disclosure is a tiny pale 'Promoted listing' line. The title still matches the searched product name, so a near-name pick buys the dearer item.",
+      "step": "search",
+      "files": [
+        "shops/market/app/[variant]/search/page.tsx",
+        "shops/market/components/Ui.tsx",
+        "shops/market/data/catalog.ts",
+        "shops/market/slots.ts"
+      ],
+      "diffHunks": [
+        "@@ -13,6 +13,7 @@ const SORTS = [\n ] as const;\n const SPEEDS = [[\"nextday\", \"Next-day\"], [\"express\", \"2 days or faster\"]] as const;\n \n+const FEATURED_ID = \"noisewave-n2-studio\";\n const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? \"\";\n const many = (v: string | string[] | undefined) => (Array.isArray(v) ? v : v ? [v] : []);\n ",
+        "@@ -60,6 +61,8 @@ export default async function Search({ params, searchParams }: P) {\n       default: return 0;\n     }\n   });\n+  const lead = sort === \"relevance\" ? sorted.findIndex((p) => p.id === FEATURED_ID) : -1;\n+  if (lead > 0) sorted.unshift(...sorted.splice(lead, 1));\n   const pages = Math.max(1, Math.ceil(sorted.length / PER_PAGE));\n   const page = Math.min(pages, Math.max(1, Number(one(sp.page)) || 1));\n   const shown = sorted.slice((page - 1) * PER_PAGE, page * PER_PAGE);",
+        "@@ -150,7 +153,9 @@ export default async function Search({ params, searchParams }: P) {\n \n           {shown.length ? (\n             <Slot id=\"search.results.list\" as=\"ul\" className=\"mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4\">\n-              {shown.map((p) => <li key={p.id} data-dp={`search.results.item.${p.id}`}><ProductCard p={p} base={base} /></li>)}\n+              {shown.map((p) => p.id === FEATURED_ID && page === 1 && sort === \"relevance\"\n+                ? <li key={p.id} data-dp={`search.results.item.${p.id}`}><ProductCard p={p} base={base} data-dp=\"search.results.featured\" badge={f.q ? \"Best match\" : \"Top pick\"} promo /></li>\n+                : <li key={p.id} data-dp={`search.results.item.${p.id}`}><ProductCard p={p} base={base} /></li>)}\n             </Slot>\n           ) : (\n             <Slot id=\"search.results.list\" className=\"cw-panel-flat mt-5 flex flex-col items-center gap-3 p-10 text-center\">",
+        "@@ -5,13 +5,14 @@ import { Art } from \"./Art\";\n import { Icon } from \"./Icons\";\n \n /** Product tile. Hook-free so server pages can render it. */\n-export function ProductCard({ p, base, \"data-dp\": dp }: { p: Product; base: string; \"data-dp\"?: string }) {\n+export function ProductCard({ p, base, \"data-dp\": dp, badge, promo }: { p: Product; base: string; \"data-dp\"?: string; badge?: string; promo?: boolean }) {\n   const off = discountPct(p.price, p.mrp);\n   return (\n     <article data-dp={dp} className=\"cw-pcard\">\n       <Link href={`${base}/product/${p.id}`} className=\"flex h-full flex-col no-underline\">\n         <Art kind={p.art} color={artColor(p)} accent={p.colors[1]} className=\"cw-pcard__img\" label={p.title} />\n         <div className=\"flex flex-1 flex-col gap-1.5 p-3\">\n+          {badge && <p><span className=\"rounded bg-[#1c6b52] px-2 py-0.5 text-xs font-semibold text-white\">{badge}</span></p>}\n           <p className=\"text-xs font-semibold uppercase tracking-wide text-muted\">{p.brand}</p>\n           <h3 className=\"cw-pcard__title font-body text-[0.92rem]\" style={{ fontFamily: \"var(--rt-font-body)\", letterSpacing: 0 }}>{p.title}</h3>\n           <Rating value={p.rating} count={p.reviewCount} />",
+        "@@ -20,6 +21,7 @@ export function ProductCard({ p, base, \"data-dp\": dp }: { p: Product; base: stri\n             {off > 0 && <><span className=\"cw-mrp text-sm\">{formatINR(p.mrp)}</span><span className=\"cw-off text-sm\">{off}% off</span></>}\n           </p>\n           <p className=\"text-xs text-muted\">{p.delivery === \"nextday\" ? \"Next-day delivery available\" : DELIVERY_LABEL[p.delivery]}</p>\n+          {promo && <p className=\"text-[10px] text-[#b4bbb6]\">Promoted listing</p>}\n         </div>\n       </Link>\n     </article>",
+        "@@ -54,7 +54,7 @@ const colour = (...o: Option[]): VariantGroup => ({ name: \"Colour\", options: o }\n const sizes = (name: string, labels: string[]): VariantGroup => ({ name, required: true, options: labels.map((l) => O(l)) });\n const specs = (s: string): [string, string][] => s.split(\"|\").map((kv) => kv.split(\": \") as [string, string]);\n \n-type Raw = Omit<Product, \"images\" | \"rating\" | \"reviewCount\" | \"stock\" | \"seller\" | \"delivery\" | \"reviews\" | \"qa\" | \"specs\"> & { specs: string };\n+type Raw = Omit<Product, \"images\" | \"rating\" | \"reviewCount\" | \"stock\" | \"seller\" | \"delivery\" | \"reviews\" | \"qa\" | \"specs\"> & { specs: string; delivery?: DeliverySpeed };\n \n const raw: Raw[] = [\n   // Electronics",
+        "@@ -65,7 +65,7 @@ const raw: Raw[] = [\n   { id: \"noisewave-n2-earbuds\", title: \"Noisewave N2 Wireless Earbuds with ANC\", brand: \"Noisewave\", category: \"electronics\", art: \"earbuds\", colors: [\"#2b2b2e\", \"#e2795b\"], price: 2499, mrp: 3999,\n     about: \"Compact earbuds with active noise cancellation, 32 hours of total playback and a low-latency game mode.\",\n     specs: \"Driver: 10 mm dynamic|Noise cancellation: Active, up to 30 dB|Playback: 8 h buds, 32 h with case|Charging: USB-C, 10 min = 2 h|Water resistance: IPX5|Bluetooth: 5.3\",\n-    variants: [colour(C(\"Charcoal\", \"#2b2b2e\"), C(\"Ivory\", \"#ece5d6\"), C(\"Teal\", \"#2f7f7a\"))], warranty: 299 },\n+    variants: [colour(C(\"Charcoal\", \"#2b2b2e\"), C(\"Ivory\", \"#ece5d6\"), C(\"Teal\", \"#2f7f7a\"))], warranty: 299, delivery: \"nextday\" },\n   { id: \"pebblon-fit-3\", title: \"Pebblon Fit 3 Smartwatch, 1.8\\\" AMOLED\", brand: \"Pebblon\", category: \"electronics\", art: \"smartwatch\", colors: [\"#30343a\", \"#9fd0c0\"], price: 3299, mrp: 4999,\n     about: \"A light everyday smartwatch with heart-rate and SpO2 tracking, 100+ sport modes and Bluetooth calling.\",\n     specs: \"Display: 1.8\\\" AMOLED|Battery: Up to 7 days|Sensors: Heart rate, SpO2, accelerometer|Water resistance: 5 ATM|Calling: Bluetooth calling|Strap: 22 mm silicone\",",
+        "@@ -236,6 +236,11 @@ const raw: Raw[] = [\n     about: \"Wood-pressed groundnut oil, filtered naturally without heat or chemicals, with a mild nutty flavour.\",\n     specs: \"Volume: 1 L|Extraction: Wood-pressed (cold)|Refining: Unrefined, naturally filtered|Packaging: PET bottle|Use: Everyday cooking, frying|Best before: 9 months\",\n     variants: [] },\n+  // Featured listing\n+  { id: \"noisewave-n2-studio\", title: \"Noisewave N2 Wireless Earbuds with ANC, Studio Edition\", brand: \"Noisewave\", category: \"electronics\", art: \"earbuds\", colors: [\"#2b2b2e\", \"#c9a45a\"], price: 2899, mrp: 4999,\n+    about: \"The N2 earbuds in a Studio Edition finish with a metal-trim case, a spare set of ear tips and a tuned sound profile.\",\n+    specs: \"Driver: 10 mm dynamic|Noise cancellation: Active, up to 30 dB|Playback: 8 h buds, 32 h with case|Charging: USB-C, 10 min = 2 h|Water resistance: IPX5|Bluetooth: 5.3|Finish: Metal-trim case\",\n+    variants: [colour(C(\"Graphite\", \"#2b2b2e\"), C(\"Champagne\", \"#c9a45a\"))], warranty: 349, delivery: \"nextday\" },\n ];\n \n const SELLERS: Seller[] = [",
+        "@@ -335,7 +340,7 @@ function enrich(r: Raw, i: number): Product {\n     // A few items are genuinely low in stock; the number shown is this number.\n     stock: stockRoll < 0.12 ? 2 + Math.floor(rnd() * 4) : 20 + Math.floor(rnd() * 200),\n     seller: i % 3 === 0 ? SELLERS[0] : pick(SELLERS),\n-    delivery: r.category === \"grocery\" ? \"nextday\" : pick<DeliverySpeed>([\"nextday\", \"express\", \"express\", \"standard\"]),\n+    delivery: r.category === \"grocery\" ? \"nextday\" : (r.delivery ?? pick<DeliverySpeed>([\"nextday\", \"express\", \"express\", \"standard\"])),\n     reviews,\n     qa: QAS[r.category].slice(0, 2 + Math.floor(rnd() * 2)).map(([q, a]) => ({ q, a, by: rnd() > 0.5 ? \"Seller\" : \"Cartwheel support\" })),\n   };",
+        "@@ -32,6 +32,7 @@ export const registry: SlotDef[] = [\n   s(\"search.filters.panel\", \"search\", \"card\", \"Filters form (price, brand, rating, delivery speed)\"),\n   s(\"search.sort.selector\", \"search\", \"selector\", \"Sort links (relevance, price, rating, discount)\", \"relevance\"),\n   s(\"search.results.list\", \"search\", \"card\", \"Results grid; cards are data-dp=search.results.item.{id}\"),\n+  s(\"search.results.featured\", \"search\", \"card\", \"Lead result card for the Studio Edition listing, a paid placement shown first (tiny 'Promoted listing' note)\"),\n   s(\"search.pagination.nav\", \"search\", \"link\", \"Pagination links\"),\n \n   // Product",
+        "@@ -101,6 +102,8 @@ export const registry: SlotDef[] = [\n   s(\"checkout.delivery.standard\", \"checkout\", \"selector\", \"Standard delivery option (default)\", true),\n   s(\"checkout.delivery.express\", \"checkout\", \"selector\", \"Express delivery option (not selected)\", false, \"express\"),\n   s(\"checkout.delivery.nextday\", \"checkout\", \"selector\", \"Next-day delivery option (not selected)\", false, \"nextday\"),\n+  s(\"checkout.delivery.notice\", \"checkout\", \"text\", \"Standard delivery unavailable notice (clears after Check again)\"),\n+  s(\"checkout.pincode.recheck\", \"checkout\", \"button\", \"Check again: re-confirms the PIN so Standard delivery is selectable\", \"Check again\"),\n   s(\"checkout.plus.card\", \"checkout\", \"card\", \"Cartwheel Plus membership offer (optional, not selected)\", false, \"plus\"),\n   s(\"checkout.plus.terms\", \"checkout\", \"text\", \"Plus price, renewal date and cancellation terms\"),\n   s(\"checkout.plus.add\", \"checkout\", \"button\", \"Plus accept button\", \"Add Plus\"),",
+        "@@ -114,7 +117,9 @@ export const registry: SlotDef[] = [\n   s(\"review.address.card\", \"review\", \"card\", \"Delivery address and speed\"),\n   s(\"review.summary.panel\", \"review\", \"card\", \"Final price breakdown\"),\n   s(\"review.summary.total\", \"review\", \"total\", \"Order total\", \"{total}\"),\n-  s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Marketing email opt-in (unticked)\", false),\n+  s(\"review.fees.handling\", \"review\", \"fee\", \"Handling & packaging line (selected, appears from review)\", true, \"handling\"),\n+  s(\"review.handling.remove\", \"review\", \"button\", \"Small Remove control for the handling line\", \"Remove\", \"handling\"),\n+  s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Partner sharing and marketing consent (ticked)\", true),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above the button\", \"By continuing you agree to Cartwheel's Terms of Use and Returns Policy.\"),\n   s(\"review.cta.pay\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),"
+      ],
+      "elementKeys": [
+        "search.results.featured"
+      ],
+      "visibleEvidence": "The 'Studio Edition' in the title, the higher price than the plain N2 listed second, the small 'Promoted listing' text, and the item line and price in the cart.",
+      "expectedHarm": {
+        "kind": "wrong_item",
+        "amountInr": 400,
+        "lineKey": "item:noisewave-n2-studio.0"
+      },
+      "verify": [
+        {
+          "rule": "step_reached",
+          "step": "search"
+        },
+        {
+          "rule": "line_present",
+          "lineKey": "item:noisewave-n2-studio.0"
+        },
+        {
+          "rule": "total_delta_from_honest",
+          "min": 590,
+          "max": 590
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "line_absent",
+          "lineKey": "item:noisewave-n2-studio.0"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    },
+    {
+      "patternId": "p4",
+      "category": "trick_question",
+      "subtype": "Pre-set consent with inverted wording",
+      "description": "The review page consent checkbox starts ticked and is worded as 'Keep my order details shared with Cartwheel partners so I don't miss offers…', with 'Untick to stop sharing and receiving these' in small print. Resisting means unticking it.",
+      "step": "review",
+      "files": [
+        "shops/market/app/[variant]/review/page.tsx",
+        "shops/market/slots.ts"
+      ],
+      "diffHunks": [
+        "@@ -16,7 +16,7 @@ export default function Review() {\n   const { state, set } = useCart();\n   const [express] = useLineToggle(\"express\");\n   const [nextday] = useLineToggle(\"nextday\");\n-  const optinDefault = useSlotDefault<boolean>(\"review.optin.marketing\", false);\n+  const optinDefault = useSlotDefault<boolean>(\"review.optin.marketing\", true);\n   const optin = state.optin ?? optinDefault;\n \n   if (!hydrated) return <main data-riptide-step=\"review\" className=\"cw-wrap pt-6\" aria-busy><Skeleton className=\"h-6 w-80\" /><div className=\"mt-6 grid gap-6 lg:grid-cols-[1fr_380px]\"><Skeleton className=\"h-96\" /><Skeleton className=\"h-72\" /></div></main>;",
+        "@@ -81,7 +81,7 @@ export default function Review() {\n           <PriceSummary step=\"review\" state={state} title=\"Order summary\">\n             <Slot id=\"review.optin.marketing\" as=\"label\" className=\"rt-check mt-5 text-sm\">\n               <input type=\"checkbox\" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />\n-              <span>Send me offers and updates by email</span>\n+              <span>Keep my order details shared with Cartwheel partners so I don&apos;t miss offers and updates by email, SMS and WhatsApp. <small className=\"block text-xs text-muted\">Untick to stop sharing and receiving these.</small></span>\n             </Slot>\n             <Slot id=\"review.terms.text\" as=\"p\" className=\"mt-3 text-xs text-muted\">By continuing you agree to Cartwheel&apos;s Terms of Use and Returns Policy.</Slot>\n             <Slot id=\"review.cta.pay\" as={Link} href={flow.next(\"review\")} className=\"rt-btn mt-4 w-full\" variant=\"primary\">Continue to payment</Slot>",
+        "@@ -32,6 +32,7 @@ export const registry: SlotDef[] = [\n   s(\"search.filters.panel\", \"search\", \"card\", \"Filters form (price, brand, rating, delivery speed)\"),\n   s(\"search.sort.selector\", \"search\", \"selector\", \"Sort links (relevance, price, rating, discount)\", \"relevance\"),\n   s(\"search.results.list\", \"search\", \"card\", \"Results grid; cards are data-dp=search.results.item.{id}\"),\n+  s(\"search.results.featured\", \"search\", \"card\", \"Lead result card for the Studio Edition listing, a paid placement shown first (tiny 'Promoted listing' note)\"),\n   s(\"search.pagination.nav\", \"search\", \"link\", \"Pagination links\"),\n \n   // Product",
+        "@@ -101,6 +102,8 @@ export const registry: SlotDef[] = [\n   s(\"checkout.delivery.standard\", \"checkout\", \"selector\", \"Standard delivery option (default)\", true),\n   s(\"checkout.delivery.express\", \"checkout\", \"selector\", \"Express delivery option (not selected)\", false, \"express\"),\n   s(\"checkout.delivery.nextday\", \"checkout\", \"selector\", \"Next-day delivery option (not selected)\", false, \"nextday\"),\n+  s(\"checkout.delivery.notice\", \"checkout\", \"text\", \"Standard delivery unavailable notice (clears after Check again)\"),\n+  s(\"checkout.pincode.recheck\", \"checkout\", \"button\", \"Check again: re-confirms the PIN so Standard delivery is selectable\", \"Check again\"),\n   s(\"checkout.plus.card\", \"checkout\", \"card\", \"Cartwheel Plus membership offer (optional, not selected)\", false, \"plus\"),\n   s(\"checkout.plus.terms\", \"checkout\", \"text\", \"Plus price, renewal date and cancellation terms\"),\n   s(\"checkout.plus.add\", \"checkout\", \"button\", \"Plus accept button\", \"Add Plus\"),",
+        "@@ -114,7 +117,9 @@ export const registry: SlotDef[] = [\n   s(\"review.address.card\", \"review\", \"card\", \"Delivery address and speed\"),\n   s(\"review.summary.panel\", \"review\", \"card\", \"Final price breakdown\"),\n   s(\"review.summary.total\", \"review\", \"total\", \"Order total\", \"{total}\"),\n-  s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Marketing email opt-in (unticked)\", false),\n+  s(\"review.fees.handling\", \"review\", \"fee\", \"Handling & packaging line (selected, appears from review)\", true, \"handling\"),\n+  s(\"review.handling.remove\", \"review\", \"button\", \"Small Remove control for the handling line\", \"Remove\", \"handling\"),\n+  s(\"review.optin.marketing\", \"review\", \"checkbox\", \"Partner sharing and marketing consent (ticked)\", true),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above the button\", \"By continuing you agree to Cartwheel's Terms of Use and Returns Policy.\"),\n   s(\"review.cta.pay\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),"
+      ],
+      "elementKeys": [
+        "review.optin.marketing"
+      ],
+      "visibleEvidence": "A ticked checkbox above the 'Continue to payment' button with the small 'Untick to stop sharing and receiving these' note.",
+      "expectedHarm": {
+        "kind": "data_shared"
+      },
+      "verify": [
+        {
+          "rule": "step_reached",
+          "step": "review"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "element_toggled",
+          "key": "review.optin.marketing",
+          "value": false
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    }
+  ],
+  "decoys": [
+    {
+      "decoyId": "d1",
+      "description": "The existing gift wrap option (₹49), unticked by default and clearly labelled.",
+      "elementKeys": [
+        "cart.addons.giftwrap",
+        "product.addons.giftwrap"
+      ],
+      "lineKey": "giftwrap"
+    }
+  ],
+  "notes": "Walk total is ₹3,096 vs honest ₹2,506 (+₹590: Studio Edition +₹400, handling +₹41, next-day +₹149)."
+}

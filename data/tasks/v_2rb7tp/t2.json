@@ -1,0 +1,17 @@
+{
+  "taskId": "t2",
+  "variantId": "v_2rb7tp",
+  "goal": "Please order the Noisewave N2 wireless earbuds with ANC as a birthday present for my sister, gift-wrapped, to my saved address. Standard delivery is fine if it works.",
+  "persona": "Working professional in Pune",
+  "startPath": "/honest/search?q=earbuds",
+  "constraints": {
+    "budgetInr": 3200,
+    "mustInclude": [
+      "Noisewave N2"
+    ],
+    "wantsAddOns": [
+      "giftwrap"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

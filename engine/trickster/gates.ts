@@ -235,7 +235,9 @@ async function verify(browser: Browser, origin: string, rec: MutationRecord, slo
       const r = evalRule(rule, ev, { honestTotal });
       ok &&= r.passed;
       const hint = !r.passed && x.flow !== "cancel" && rule.rule === "step_reached" && /cancel/.test(rule.step) ? ' — this pattern is in the cancel flow: set "flow": "cancel" so it is checked on the cancel walk' : "";
-      lines.push(`${x.patternId} ${rule.rule}: ${r.passed ? "ok" : "FAIL"} (${r.detail})${hint}`);
+      // Name the steps the walk did reach, so a retry fixes the step instead of guessing another name.
+      const reached = !r.passed && rule.rule === "step_reached" ? ` — the ${x.flow === "cancel" ? "cancel" : "buy"} walk reached: ${[...new Set(ev.flatMap((e) => (e.type === "page_view" ? [e.step] : [])))].join(" > ") || "no steps"}` : "";
+      lines.push(`${x.patternId} ${rule.rule}: ${r.passed ? "ok" : "FAIL"} (${r.detail})${hint}${reached}`);
     }
     // v2+: the pattern must say what resisting looks like, and a passive shopper must NOT meet that bar.
     if (!strict) continue;

@@ -1,0 +1,11 @@
+{
+  "taskId": "t1",
+  "variantId": "v_13p4xs",
+  "goal": "Book me a one-way flight from New Delhi to Mumbai tomorrow for one adult, the cheapest fare is fine. Take me to payment.",
+  "persona": "Student heading home for the weekend",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 9000
+  },
+  "stopCondition": "payment_page"
+}

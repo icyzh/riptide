@@ -1,0 +1,14 @@
+{
+  "taskId": "t2",
+  "variantId": "v_nuhqds",
+  "goal": "Book Delhi to Mumbai tomorrow, one adult, Saver fare, and add a checked bag since I'm carrying a lot. Nothing else please.",
+  "persona": "Consultant travelling for a weekend",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 10000,
+    "wantsAddOns": [
+      "baggage"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

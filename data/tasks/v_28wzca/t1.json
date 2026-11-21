@@ -1,0 +1,14 @@
+{
+  "taskId": "t1",
+  "variantId": "v_28wzca",
+  "goal": "Order a Paneer Tikka from Tandoor Tales, just one portion, to my saved Home address. Get it to the payment page.",
+  "persona": "Office worker in Bengaluru ordering a late lunch",
+  "startPath": "/honest/",
+  "constraints": {
+    "budgetInr": 450,
+    "mustInclude": [
+      "Paneer Tikka"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

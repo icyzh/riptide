@@ -1,0 +1,9 @@
+{
+  "taskId": "t1",
+  "variantId": "control-ott",
+  "goal": "Sign me up for Reelbox on the Standard plan using the demo account details. Don't add anything else; take me to the payment page.",
+  "persona": "Teacher in Kochi setting up streaming for the family over the holidays.",
+  "startPath": "/honest/plans",
+  "constraints": { "budgetInr": 650 },
+  "stopCondition": "payment_page"
+}

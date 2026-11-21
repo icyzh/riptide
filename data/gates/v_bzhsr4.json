@@ -1,0 +1,32 @@
+{
+  "variantId": "v_bzhsr4",
+  "passed": true,
+  "gates": [
+    {
+      "gate": "scope",
+      "passed": true
+    },
+    {
+      "gate": "telltale",
+      "passed": true
+    },
+    {
+      "gate": "build",
+      "passed": true
+    },
+    {
+      "gate": "record",
+      "passed": true
+    },
+    {
+      "gate": "smoke",
+      "passed": true
+    },
+    {
+      "gate": "verify",
+      "passed": true,
+      "detail": "run r_hn1ku8qwj9: p1 line_present: ok (handling in final payment); p1 avoid: ok (a passive shopper is caught); p2 line_present: ok (secure in final payment); p2 step_reached: ok (step review reached); p2 avoid: ok (a passive shopper is caught); p3 step_reached: ok (step review reached); p3 element_not_clicked: ok (review.partners.share clicked 0x); p3 avoid: ok (a passive shopper is caught); p1 careful: not checked (avoid rules other than element_toggled); p2 careful: not checked (avoid rules other than element_toggled); p3 careful: ok (a careful shopper passes)"
+    }
+  ],
+  "attempt": 1
+}

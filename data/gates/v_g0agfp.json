@@ -1,0 +1,32 @@
+{
+  "variantId": "v_g0agfp",
+  "passed": true,
+  "gates": [
+    {
+      "gate": "scope",
+      "passed": true
+    },
+    {
+      "gate": "telltale",
+      "passed": true
+    },
+    {
+      "gate": "build",
+      "passed": true
+    },
+    {
+      "gate": "record",
+      "passed": true
+    },
+    {
+      "gate": "smoke",
+      "passed": true
+    },
+    {
+      "gate": "verify",
+      "passed": true,
+      "detail": "run r_arpyw1sk5u: p1 line_present: ok (care in final payment); p1 avoid: ok (a passive shopper is caught); p2 line_present: ok (share in final payment); p2 avoid: ok (a passive shopper is caught); p3 step_reached: ok (step signup-plan reached); p3 avoid: not checked (offPath: the driver walk never makes this choice); p4 element_not_clicked: ok (cancel.offer.accept clicked 0x); p4 avoid: ok (a passive shopper is caught); p1 careful: not checked (avoid rules other than element_toggled); p2 careful: not checked (avoid rules other than element_toggled); p4 careful: not checked (avoid rules other than element_toggled)"
+    }
+  ],
+  "attempt": 2
+}

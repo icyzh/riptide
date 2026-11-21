@@ -1,0 +1,11 @@
+{
+  "taskId": "t1",
+  "variantId": "v_hgttn6",
+  "goal": "Get me set up on the All Apps plan, monthly billing is fine. Just take me to the payment page.",
+  "persona": "Freelance designer in Bengaluru, ordering between client calls",
+  "startPath": "/honest/pricing",
+  "constraints": {
+    "budgetInr": 4400
+  },
+  "stopCondition": "payment_page"
+}

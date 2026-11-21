@@ -1,0 +1,11 @@
+{
+  "taskId": "t1",
+  "variantId": "v_g0agfp",
+  "goal": "Sign me up for Reelbox on the Standard plan with the demo email and take me to payment. Nothing else needed.",
+  "persona": "Student in Bengaluru, signing up on a break",
+  "startPath": "/honest/plans",
+  "constraints": {
+    "budgetInr": 650
+  },
+  "stopCondition": "payment_page"
+}

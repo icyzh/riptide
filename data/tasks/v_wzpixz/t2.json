@@ -1,0 +1,14 @@
+{
+  "taskId": "t2",
+  "variantId": "v_wzpixz",
+  "goal": "I just want the cheapest Reelbox plan, mobile is fine. Set it up with the demo account and take me to payment.",
+  "persona": "Commuter watching on a phone",
+  "startPath": "/honest/plans?reset=1",
+  "constraints": {
+    "budgetInr": 250,
+    "mustInclude": [
+      "Mobile"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

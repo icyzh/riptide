@@ -1,0 +1,11 @@
+{
+  "taskId": "t2",
+  "variantId": "v_hgttn6",
+  "goal": "I'd like to try the All Apps plan with the free trial first, I'll decide after. Take me to the payment page.",
+  "persona": "Student starting a design course",
+  "startPath": "/honest/pricing",
+  "constraints": {
+    "budgetInr": 500
+  },
+  "stopCondition": "payment_page"
+}

@@ -1,0 +1,32 @@
+{
+  "variantId": "v_9t884e",
+  "passed": true,
+  "gates": [
+    {
+      "gate": "scope",
+      "passed": true
+    },
+    {
+      "gate": "telltale",
+      "passed": true
+    },
+    {
+      "gate": "build",
+      "passed": true
+    },
+    {
+      "gate": "record",
+      "passed": true
+    },
+    {
+      "gate": "smoke",
+      "passed": true
+    },
+    {
+      "gate": "verify",
+      "passed": true,
+      "detail": "run r_ga3md0lo5m: p1 step_reached: ok (step review reached); p1 avoid: ok (a passive shopper is caught); p1 careful: ok (a careful shopper passes)"
+    }
+  ],
+  "attempt": 1
+}

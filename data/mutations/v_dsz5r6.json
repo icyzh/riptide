@@ -1,0 +1,48 @@
+{
+  "variantId": "v_dsz5r6",
+  "shop": "saas",
+  "baseCommit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+  "variantCommit": "79f295912d34d57c9e640c0b2cc55db79a654f74",
+  "tricksterVersion": "ablation",
+  "createdAt": "2026-11-21T13:44:25.156Z",
+  "patterns": [
+    {
+      "patternId": "p1",
+      "category": "trick_question",
+      "subtype": "pre-ticked consent, double negative",
+      "description": "The partner-sharing opt-in on the review page starts ticked, labelled \"Don't stop sharing my order details and email with partner brands\".",
+      "step": "review",
+      "files": [
+        "shops/saas/app/[variant]/review/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -14,7 +14,7 @@ export default function Review() {\n   const hydrated = useHydrated();\n   const price = usePrice(\"review\");\n   const [storage, setStorage] = useLineToggle(\"storage\");\n-  const optDefault = useSlotDefault<boolean>(\"review.optin.marketing\", false);\n+  const optDefault = useSlotDefault<boolean>(\"review.optin.marketing\", true);\n   const optin = s.optin ?? optDefault;\n \n   if (!hydrated) return <main data-riptide-step=\"review\" className=\"ps-wrap py-8\"><Steps current=\"review\" /><Skeleton h={420} className=\"mt-8\" /></main>;",
+        "@@ -75,7 +75,7 @@ export default function Review() {\n           <section className=\"ps-panel p-6\">\n             <Slot id=\"review.optin.marketing\" as=\"label\" className=\"rt-check\">\n               <input type=\"checkbox\" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />\n-              <span>Send me tutorials, product news and offers by email. You can unsubscribe at any time.</span>\n+              <span>Don't stop sharing my order details and email with partner brands</span>\n             </Slot>\n           </section>\n         </div>"
+      ],
+      "elementKeys": [
+        "review.optin.marketing"
+      ],
+      "visibleEvidence": "A ticked checkbox under the order summary whose label says order details and email are shared with partner brands.",
+      "expectedHarm": {
+        "kind": "data_shared"
+      },
+      "verify": [
+        {
+          "rule": "step_reached",
+          "step": "review"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "element_toggled",
+          "key": "review.optin.marketing",
+          "value": false
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    }
+  ],
+  "decoys": [],
+  "notes": "Wording ablation, condition \"trick\"."
+}

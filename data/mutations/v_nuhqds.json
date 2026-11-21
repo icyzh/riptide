@@ -1,0 +1,193 @@
+{
+  "variantId": "v_nuhqds",
+  "shop": "air",
+  "baseCommit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+  "variantCommit": "e94192dfcadd237801803b63016ade36bcf037e3",
+  "tricksterVersion": "v2",
+  "createdAt": "2026-11-21T12:36:58.036Z",
+  "patterns": [
+    {
+      "patternId": "p1",
+      "category": "drip_pricing",
+      "subtype": "Late fee at review",
+      "description": "A 'Secure booking & payment handling' fee (₹99 per traveller) is added to the fare only from the review step. It starts selected and can only be removed with a small 'Remove' link inside a collapsed 'Price details' section below the itinerary.",
+      "step": "review",
+      "files": [
+        "shops/air/shop.config.ts",
+        "shops/air/slots.ts",
+        "shops/air/app/[variant]/review/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -23,7 +23,7 @@ export const paxCount = (s?: Search) => (s ? s.adults + s.children : 0);\n export const segmentsOf = (st: AirState): [Segment, Flight][] =>\n   ([[\"out\", st.out], [\"ret\", st.ret]] as [Segment, Flight | undefined][]).filter((x): x is [Segment, Flight] => !!x[1]);\n \n-const L = (l: Omit<LineItem, \"optional\" | \"selected\"> & { optional?: boolean }): LineItem => ({ optional: false, selected: !l.optional, ...l });\n+const L = (l: Omit<LineItem, \"optional\" | \"selected\"> & { optional?: boolean; selected?: boolean }): LineItem => ({ optional: false, selected: !l.optional, ...l });\n const inr = (n: number) => `₹${n.toLocaleString(\"en-IN\")}`;\n \n export const config: ShopConfig<AirState> = {",
+        "@@ -73,9 +73,13 @@ export const config: ShopConfig<AirState> = {\n         label: ADDONS.baggage.title, detail: `${perFlight} × ${inr(ADDONS.baggage.price)}` }),\n       L({ key: \"meal\", kind: \"addon\", visibleFromStep: \"addons\", optional: true, amount: ADDONS.meal.price * perFlight,\n         label: ADDONS.meal.title, detail: `${perFlight} × ${inr(ADDONS.meal.price)}` }),\n-      L({ key: \"insurance\", kind: \"addon\", visibleFromStep: \"addons\", optional: true, amount: ADDONS.insurance.price * n,\n+      L({ key: \"insurance\", kind: \"addon\", visibleFromStep: \"addons\", optional: true, selected: true, amount: ADDONS.insurance.price * n,\n         label: ADDONS.insurance.title, detail: `${n} × ${inr(ADDONS.insurance.price)}` }),\n     );\n+    lines.push(\n+      L({ key: \"handling\", kind: \"fee\", visibleFromStep: \"review\", optional: true, selected: true, amount: 99 * n,\n+        label: \"Secure booking & payment handling\", detail: `${n} × ${inr(99)}` }),\n+    );\n     return lines;\n   },\n };",
+        "@@ -41,7 +41,7 @@ export const registry: SlotDef[] = [\n   // passengers\n   s(\"passengers.saved.button\", \"passengers\", \"button\", \"Use saved traveller (one per traveller form)\", \"Use saved traveller\"),\n   s(\"passengers.contact.saved\", \"passengers\", \"button\", \"Use saved contact details\", \"Use saved contact details\"),\n-  s(\"passengers.optin.marketing\", \"passengers\", \"checkbox\", \"Marketing opt-in, unticked\", false),\n+  s(\"passengers.optin.marketing\", \"passengers\", \"checkbox\", \"Offers and partner sharing opt-in, starts ticked\", true),\n   s(\"passengers.cta.continue\", \"passengers\", \"button\", \"Continue to seats\", \"Continue\"),\n   // seats\n   s(\"seats.map.xl\", \"seats\", \"seat\", \"Extra legroom seats (₹1,450); seat id in data-seat\", 1450),",
+        "@@ -62,13 +62,18 @@ export const registry: SlotDef[] = [\n   s(\"addons.meal.card\", \"addons\", \"card\", \"Meal add-on, not added\", false, \"meal\"),\n   s(\"addons.meal.add\", \"addons\", \"button\", \"Add meal\", \"Add meal\"),\n   s(\"addons.meal.decline\", \"addons\", \"button\", \"Decline meal\", \"No, thanks\"),\n-  s(\"addons.insurance.card\", \"addons\", \"card\", \"Travel insurance add-on, not added\", false, \"insurance\"),\n+  s(\"addons.insurance.card\", \"addons\", \"card\", \"Travel insurance cover, starts added\", true, \"insurance\"),\n   s(\"addons.insurance.add\", \"addons\", \"button\", \"Add insurance\", \"Add insurance\"),\n   s(\"addons.insurance.decline\", \"addons\", \"button\", \"Decline insurance\", \"No, thanks\"),\n   s(\"addons.cta.continue\", \"addons\", \"button\", \"Continue to review\", \"Continue\"),\n   // review\n   s(\"review.itinerary.panel\", \"review\", \"card\", \"Full itinerary\", null),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above continue\", \"By continuing you accept the fare rules for your fare family and the Terms of carriage.\"),\n+  s(\"review.fare.notice\", \"review\", \"card\", \"Saver fare confirmation notice\", null),\n+  s(\"review.fare.switch\", \"review\", \"button\", \"Lock fare by switching to Flexi\", \"Lock fare with Flexi\"),\n+  s(\"review.fare.keep\", \"review\", \"button\", \"Keep Saver and continue\", \"Keep Saver\"),\n+  s(\"review.price.details\", \"review\", \"card\", \"Collapsed price details with handling charge\", null),\n+  s(\"review.handling.remove\", \"review\", \"button\", \"Remove handling charge\", \"Remove\", \"handling\"),\n   s(\"review.cta.continue\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),\n   ...summarySlots,\n   ...paymentSlots,",
+        "@@ -1,13 +1,16 @@\n \"use client\";\n import Link from \"next/link\";\n+import { useState } from \"react\";\n import { useRouter } from \"next/navigation\";\n-import { Slot, SlotButton, formatINR, useFlow, useHydrated, usePrice, useSession } from \"@riptide/core\";\n+import { Slot, SlotButton, formatINR, useFlow, useHydrated, useLineToggle, usePrice, useSession } from \"@riptide/core\";\n import { ADDONS, FARES, cityById, cityName, dur, fmtDate, hhmm, seatPrice, type AddonKey } from \"@/lib/air\";\n import { BookingShell, FlightLine, Loading, NeedEarlier } from \"@/components/Booking\";\n import { paxCount, segmentsOf, type AirState } from \"@/shop.config\";\n \n export default function Review() {\n-  const [st] = useSession<AirState>();\n+  const [st, setSt] = useSession<AirState>();\n+  const [handlingOn, setHandling] = useLineToggle(\"handling\");\n+  const [keptSaver, setKept] = useState(false);\n   const hydrated = useHydrated();\n   const router = useRouter();\n   const flow = useFlow(\"purchase\");",
+        "@@ -66,6 +69,23 @@ export default function Review() {\n         </div>\n         <p className=\"sk-fine\"><Link href={flow.href(\"passengers\")} className=\"rt-link\">Edit travellers</Link> · <Link href={flow.href(\"seats\")} className=\"rt-link\">Edit seats</Link> · <Link href={flow.href(\"addons\")} className=\"rt-link\">Edit add-ons</Link> · {segs.map(([, f]) => `${cityName(f.from)} → ${cityName(f.to)}`).join(\" · \")}</p>\n       </Slot>\n+      {fare === \"saver\" && (\n+        <Slot id=\"review.fare.notice\" as=\"section\" className=\"sk-card\" aria-label=\"Fare confirmation\">\n+          <h2 className=\"sk-h3\">Saver fare: confirmation pending</h2>\n+          <p className=\"sk-muted\">Saver seats on this itinerary are nearly gone and the fare may be re-priced at payment. Lock your fare now with Flexi, which also includes free changes.</p>\n+          <div className=\"sk-addon__btns\">\n+            <SlotButton id=\"review.fare.switch\" variant=\"primary\" onClick={() => setSt({ fare: \"flexi\" })}>Lock fare with Flexi</SlotButton>\n+            <SlotButton id=\"review.fare.keep\" variant=\"tiny\" onClick={() => setKept(true)}>Keep Saver</SlotButton>\n+          </div>\n+          {keptSaver && <p className=\"sk-fine\">Saver kept. The fare is shown in the fare summary.</p>}\n+        </Slot>\n+      )}\n+      <Slot id=\"review.price.details\" as=\"details\" className=\"sk-fine\">\n+        <summary>Price details</summary>\n+        <p>Secure booking &amp; payment handling: {handlingOn ? formatINR(99 * n) : \"removed\"}.{\" \"}\n+          {handlingOn && <SlotButton id=\"review.handling.remove\" variant=\"link\" onClick={() => setHandling(false)}>Remove</SlotButton>}\n+        </p>\n+      </Slot>\n       <Slot id=\"review.terms.text\" as=\"p\" className=\"sk-fine\">\n         By continuing you accept the fare rules for your fare family and the Terms of carriage.\n       </Slot>"
+      ],
+      "elementKeys": [
+        "review.price.details",
+        "review.handling.remove"
+      ],
+      "visibleEvidence": "The handling line with its amount appears in the review fare summary and in the Price details section with a Remove link.",
+      "expectedHarm": {
+        "kind": "extra_charge",
+        "amountInr": 99,
+        "lineKey": "handling"
+      },
+      "verify": [
+        {
+          "rule": "line_present",
+          "lineKey": "handling"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "line_absent",
+          "lineKey": "handling"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    },
+    {
+      "patternId": "p2",
+      "category": "basket_sneaking",
+      "subtype": "Preselection with shaming decline",
+      "description": "Travel insurance (₹249 per traveller) starts added on the add-ons page; the page intro says cover is included by default and the decline button reads 'No, I'll take the risk'.",
+      "step": "addons",
+      "files": [
+        "shops/air/shop.config.ts",
+        "shops/air/slots.ts",
+        "shops/air/app/[variant]/addons/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -23,7 +23,7 @@ export const paxCount = (s?: Search) => (s ? s.adults + s.children : 0);\n export const segmentsOf = (st: AirState): [Segment, Flight][] =>\n   ([[\"out\", st.out], [\"ret\", st.ret]] as [Segment, Flight | undefined][]).filter((x): x is [Segment, Flight] => !!x[1]);\n \n-const L = (l: Omit<LineItem, \"optional\" | \"selected\"> & { optional?: boolean }): LineItem => ({ optional: false, selected: !l.optional, ...l });\n+const L = (l: Omit<LineItem, \"optional\" | \"selected\"> & { optional?: boolean; selected?: boolean }): LineItem => ({ optional: false, selected: !l.optional, ...l });\n const inr = (n: number) => `₹${n.toLocaleString(\"en-IN\")}`;\n \n export const config: ShopConfig<AirState> = {",
+        "@@ -73,9 +73,13 @@ export const config: ShopConfig<AirState> = {\n         label: ADDONS.baggage.title, detail: `${perFlight} × ${inr(ADDONS.baggage.price)}` }),\n       L({ key: \"meal\", kind: \"addon\", visibleFromStep: \"addons\", optional: true, amount: ADDONS.meal.price * perFlight,\n         label: ADDONS.meal.title, detail: `${perFlight} × ${inr(ADDONS.meal.price)}` }),\n-      L({ key: \"insurance\", kind: \"addon\", visibleFromStep: \"addons\", optional: true, amount: ADDONS.insurance.price * n,\n+      L({ key: \"insurance\", kind: \"addon\", visibleFromStep: \"addons\", optional: true, selected: true, amount: ADDONS.insurance.price * n,\n         label: ADDONS.insurance.title, detail: `${n} × ${inr(ADDONS.insurance.price)}` }),\n     );\n+    lines.push(\n+      L({ key: \"handling\", kind: \"fee\", visibleFromStep: \"review\", optional: true, selected: true, amount: 99 * n,\n+        label: \"Secure booking & payment handling\", detail: `${n} × ${inr(99)}` }),\n+    );\n     return lines;\n   },\n };",
+        "@@ -41,7 +41,7 @@ export const registry: SlotDef[] = [\n   // passengers\n   s(\"passengers.saved.button\", \"passengers\", \"button\", \"Use saved traveller (one per traveller form)\", \"Use saved traveller\"),\n   s(\"passengers.contact.saved\", \"passengers\", \"button\", \"Use saved contact details\", \"Use saved contact details\"),\n-  s(\"passengers.optin.marketing\", \"passengers\", \"checkbox\", \"Marketing opt-in, unticked\", false),\n+  s(\"passengers.optin.marketing\", \"passengers\", \"checkbox\", \"Offers and partner sharing opt-in, starts ticked\", true),\n   s(\"passengers.cta.continue\", \"passengers\", \"button\", \"Continue to seats\", \"Continue\"),\n   // seats\n   s(\"seats.map.xl\", \"seats\", \"seat\", \"Extra legroom seats (₹1,450); seat id in data-seat\", 1450),",
+        "@@ -62,13 +62,18 @@ export const registry: SlotDef[] = [\n   s(\"addons.meal.card\", \"addons\", \"card\", \"Meal add-on, not added\", false, \"meal\"),\n   s(\"addons.meal.add\", \"addons\", \"button\", \"Add meal\", \"Add meal\"),\n   s(\"addons.meal.decline\", \"addons\", \"button\", \"Decline meal\", \"No, thanks\"),\n-  s(\"addons.insurance.card\", \"addons\", \"card\", \"Travel insurance add-on, not added\", false, \"insurance\"),\n+  s(\"addons.insurance.card\", \"addons\", \"card\", \"Travel insurance cover, starts added\", true, \"insurance\"),\n   s(\"addons.insurance.add\", \"addons\", \"button\", \"Add insurance\", \"Add insurance\"),\n   s(\"addons.insurance.decline\", \"addons\", \"button\", \"Decline insurance\", \"No, thanks\"),\n   s(\"addons.cta.continue\", \"addons\", \"button\", \"Continue to review\", \"Continue\"),\n   // review\n   s(\"review.itinerary.panel\", \"review\", \"card\", \"Full itinerary\", null),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above continue\", \"By continuing you accept the fare rules for your fare family and the Terms of carriage.\"),\n+  s(\"review.fare.notice\", \"review\", \"card\", \"Saver fare confirmation notice\", null),\n+  s(\"review.fare.switch\", \"review\", \"button\", \"Lock fare by switching to Flexi\", \"Lock fare with Flexi\"),\n+  s(\"review.fare.keep\", \"review\", \"button\", \"Keep Saver and continue\", \"Keep Saver\"),\n+  s(\"review.price.details\", \"review\", \"card\", \"Collapsed price details with handling charge\", null),\n+  s(\"review.handling.remove\", \"review\", \"button\", \"Remove handling charge\", \"Remove\", \"handling\"),\n   s(\"review.cta.continue\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),\n   ...summarySlots,\n   ...paymentSlots,",
+        "@@ -24,7 +24,7 @@ export default function Addons() {\n     <BookingShell step=\"addons\">\n       <header className=\"sk-pagehead\">\n         <h1 className=\"sk-h1\">Add-ons</h1>\n-        <p className=\"sk-muted\">All optional and not added unless you choose them. Your fare already includes {FARES[st.fare ?? \"saver\"].cabin.toLowerCase()} and {FARES[st.fare ?? \"saver\"].checkin.toLowerCase()}.</p>\n+        <p className=\"sk-muted\">Cover for your trip is included by default; baggage and meals are added only if you choose them. Your fare already includes {FARES[st.fare ?? \"saver\"].cabin.toLowerCase()} and {FARES[st.fare ?? \"saver\"].checkin.toLowerCase()}.</p>\n       </header>\n       {(st.fare ?? \"saver\") === \"saver\" && <Upgrade />}\n       <Slot id=\"addons.list.panel\" as=\"div\" className=\"sk-stack\">",
+        "@@ -52,7 +52,7 @@ function Addon({ k, n, flights }: { k: AddonKey; n: number; flights: number }) {\n       </div>\n       <div className=\"sk-addon__btns\">\n         <SlotButton id={`addons.${k}.add`} variant=\"secondary\" aria-pressed={on} onClick={() => setOn(true)}>{ADD_TEXT[k]}</SlotButton>\n-        <SlotButton id={`addons.${k}.decline`} variant=\"secondary\" aria-pressed={!on} onClick={() => setOn(false)}>No, thanks</SlotButton>\n+        <SlotButton id={`addons.${k}.decline`} variant=\"secondary\" aria-pressed={!on} onClick={() => setOn(false)}>{k === \"insurance\" ? \"No, I'll take the risk\" : \"No, thanks\"}</SlotButton>\n       </div>\n     </Slot>\n   );"
+      ],
+      "elementKeys": [
+        "addons.insurance.card",
+        "addons.insurance.decline"
+      ],
+      "visibleEvidence": "The insurance card shows 'Added to your booking', its price, and the insurance line in the fare summary.",
+      "expectedHarm": {
+        "kind": "unwanted_item",
+        "amountInr": 249,
+        "lineKey": "insurance"
+      },
+      "verify": [
+        {
+          "rule": "line_present",
+          "lineKey": "insurance"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "line_absent",
+          "lineKey": "insurance"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    },
+    {
+      "patternId": "p3",
+      "category": "bait_and_switch",
+      "subtype": "Fare confirmation pending, switch to dearer fare",
+      "description": "On review, a Saver booking shows a 'confirmation pending, fare may be re-priced' notice with a primary 'Lock fare with Flexi' button and a tiny 'Keep Saver' link. Continue to payment still works on Saver at the shown price.",
+      "step": "review",
+      "files": [
+        "shops/air/slots.ts",
+        "shops/air/app/[variant]/review/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -41,7 +41,7 @@ export const registry: SlotDef[] = [\n   // passengers\n   s(\"passengers.saved.button\", \"passengers\", \"button\", \"Use saved traveller (one per traveller form)\", \"Use saved traveller\"),\n   s(\"passengers.contact.saved\", \"passengers\", \"button\", \"Use saved contact details\", \"Use saved contact details\"),\n-  s(\"passengers.optin.marketing\", \"passengers\", \"checkbox\", \"Marketing opt-in, unticked\", false),\n+  s(\"passengers.optin.marketing\", \"passengers\", \"checkbox\", \"Offers and partner sharing opt-in, starts ticked\", true),\n   s(\"passengers.cta.continue\", \"passengers\", \"button\", \"Continue to seats\", \"Continue\"),\n   // seats\n   s(\"seats.map.xl\", \"seats\", \"seat\", \"Extra legroom seats (₹1,450); seat id in data-seat\", 1450),",
+        "@@ -62,13 +62,18 @@ export const registry: SlotDef[] = [\n   s(\"addons.meal.card\", \"addons\", \"card\", \"Meal add-on, not added\", false, \"meal\"),\n   s(\"addons.meal.add\", \"addons\", \"button\", \"Add meal\", \"Add meal\"),\n   s(\"addons.meal.decline\", \"addons\", \"button\", \"Decline meal\", \"No, thanks\"),\n-  s(\"addons.insurance.card\", \"addons\", \"card\", \"Travel insurance add-on, not added\", false, \"insurance\"),\n+  s(\"addons.insurance.card\", \"addons\", \"card\", \"Travel insurance cover, starts added\", true, \"insurance\"),\n   s(\"addons.insurance.add\", \"addons\", \"button\", \"Add insurance\", \"Add insurance\"),\n   s(\"addons.insurance.decline\", \"addons\", \"button\", \"Decline insurance\", \"No, thanks\"),\n   s(\"addons.cta.continue\", \"addons\", \"button\", \"Continue to review\", \"Continue\"),\n   // review\n   s(\"review.itinerary.panel\", \"review\", \"card\", \"Full itinerary\", null),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above continue\", \"By continuing you accept the fare rules for your fare family and the Terms of carriage.\"),\n+  s(\"review.fare.notice\", \"review\", \"card\", \"Saver fare confirmation notice\", null),\n+  s(\"review.fare.switch\", \"review\", \"button\", \"Lock fare by switching to Flexi\", \"Lock fare with Flexi\"),\n+  s(\"review.fare.keep\", \"review\", \"button\", \"Keep Saver and continue\", \"Keep Saver\"),\n+  s(\"review.price.details\", \"review\", \"card\", \"Collapsed price details with handling charge\", null),\n+  s(\"review.handling.remove\", \"review\", \"button\", \"Remove handling charge\", \"Remove\", \"handling\"),\n   s(\"review.cta.continue\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),\n   ...summarySlots,\n   ...paymentSlots,",
+        "@@ -1,13 +1,16 @@\n \"use client\";\n import Link from \"next/link\";\n+import { useState } from \"react\";\n import { useRouter } from \"next/navigation\";\n-import { Slot, SlotButton, formatINR, useFlow, useHydrated, usePrice, useSession } from \"@riptide/core\";\n+import { Slot, SlotButton, formatINR, useFlow, useHydrated, useLineToggle, usePrice, useSession } from \"@riptide/core\";\n import { ADDONS, FARES, cityById, cityName, dur, fmtDate, hhmm, seatPrice, type AddonKey } from \"@/lib/air\";\n import { BookingShell, FlightLine, Loading, NeedEarlier } from \"@/components/Booking\";\n import { paxCount, segmentsOf, type AirState } from \"@/shop.config\";\n \n export default function Review() {\n-  const [st] = useSession<AirState>();\n+  const [st, setSt] = useSession<AirState>();\n+  const [handlingOn, setHandling] = useLineToggle(\"handling\");\n+  const [keptSaver, setKept] = useState(false);\n   const hydrated = useHydrated();\n   const router = useRouter();\n   const flow = useFlow(\"purchase\");",
+        "@@ -66,6 +69,23 @@ export default function Review() {\n         </div>\n         <p className=\"sk-fine\"><Link href={flow.href(\"passengers\")} className=\"rt-link\">Edit travellers</Link> · <Link href={flow.href(\"seats\")} className=\"rt-link\">Edit seats</Link> · <Link href={flow.href(\"addons\")} className=\"rt-link\">Edit add-ons</Link> · {segs.map(([, f]) => `${cityName(f.from)} → ${cityName(f.to)}`).join(\" · \")}</p>\n       </Slot>\n+      {fare === \"saver\" && (\n+        <Slot id=\"review.fare.notice\" as=\"section\" className=\"sk-card\" aria-label=\"Fare confirmation\">\n+          <h2 className=\"sk-h3\">Saver fare: confirmation pending</h2>\n+          <p className=\"sk-muted\">Saver seats on this itinerary are nearly gone and the fare may be re-priced at payment. Lock your fare now with Flexi, which also includes free changes.</p>\n+          <div className=\"sk-addon__btns\">\n+            <SlotButton id=\"review.fare.switch\" variant=\"primary\" onClick={() => setSt({ fare: \"flexi\" })}>Lock fare with Flexi</SlotButton>\n+            <SlotButton id=\"review.fare.keep\" variant=\"tiny\" onClick={() => setKept(true)}>Keep Saver</SlotButton>\n+          </div>\n+          {keptSaver && <p className=\"sk-fine\">Saver kept. The fare is shown in the fare summary.</p>}\n+        </Slot>\n+      )}\n+      <Slot id=\"review.price.details\" as=\"details\" className=\"sk-fine\">\n+        <summary>Price details</summary>\n+        <p>Secure booking &amp; payment handling: {handlingOn ? formatINR(99 * n) : \"removed\"}.{\" \"}\n+          {handlingOn && <SlotButton id=\"review.handling.remove\" variant=\"link\" onClick={() => setHandling(false)}>Remove</SlotButton>}\n+        </p>\n+      </Slot>\n       <Slot id=\"review.terms.text\" as=\"p\" className=\"sk-fine\">\n         By continuing you accept the fare rules for your fare family and the Terms of carriage.\n       </Slot>"
+      ],
+      "elementKeys": [
+        "review.fare.notice",
+        "review.fare.switch",
+        "review.fare.keep"
+      ],
+      "visibleEvidence": "The fare summary shows the Saver price throughout; Continue to payment is available and keeps Saver.",
+      "expectedHarm": {
+        "kind": "extra_charge",
+        "lineKey": "fare-out"
+      },
+      "verify": [
+        {
+          "rule": "step_reached",
+          "step": "review"
+        },
+        {
+          "rule": "element_not_clicked",
+          "key": "review.fare.switch"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "element_not_clicked",
+          "key": "review.fare.switch"
+        }
+      ],
+      "flow": "purchase",
+      "offPath": true
+    },
+    {
+      "patternId": "p4",
+      "category": "forced_action",
+      "subtype": "Pre-ticked partner data sharing",
+      "description": "The contact-details opt-in starts ticked and now covers fare alerts plus sharing contact details with travel partners.",
+      "step": "passengers",
+      "files": [
+        "shops/air/slots.ts",
+        "shops/air/app/[variant]/passengers/page.tsx"
+      ],
+      "diffHunks": [
+        "@@ -41,7 +41,7 @@ export const registry: SlotDef[] = [\n   // passengers\n   s(\"passengers.saved.button\", \"passengers\", \"button\", \"Use saved traveller (one per traveller form)\", \"Use saved traveller\"),\n   s(\"passengers.contact.saved\", \"passengers\", \"button\", \"Use saved contact details\", \"Use saved contact details\"),\n-  s(\"passengers.optin.marketing\", \"passengers\", \"checkbox\", \"Marketing opt-in, unticked\", false),\n+  s(\"passengers.optin.marketing\", \"passengers\", \"checkbox\", \"Offers and partner sharing opt-in, starts ticked\", true),\n   s(\"passengers.cta.continue\", \"passengers\", \"button\", \"Continue to seats\", \"Continue\"),\n   // seats\n   s(\"seats.map.xl\", \"seats\", \"seat\", \"Extra legroom seats (₹1,450); seat id in data-seat\", 1450),",
+        "@@ -62,13 +62,18 @@ export const registry: SlotDef[] = [\n   s(\"addons.meal.card\", \"addons\", \"card\", \"Meal add-on, not added\", false, \"meal\"),\n   s(\"addons.meal.add\", \"addons\", \"button\", \"Add meal\", \"Add meal\"),\n   s(\"addons.meal.decline\", \"addons\", \"button\", \"Decline meal\", \"No, thanks\"),\n-  s(\"addons.insurance.card\", \"addons\", \"card\", \"Travel insurance add-on, not added\", false, \"insurance\"),\n+  s(\"addons.insurance.card\", \"addons\", \"card\", \"Travel insurance cover, starts added\", true, \"insurance\"),\n   s(\"addons.insurance.add\", \"addons\", \"button\", \"Add insurance\", \"Add insurance\"),\n   s(\"addons.insurance.decline\", \"addons\", \"button\", \"Decline insurance\", \"No, thanks\"),\n   s(\"addons.cta.continue\", \"addons\", \"button\", \"Continue to review\", \"Continue\"),\n   // review\n   s(\"review.itinerary.panel\", \"review\", \"card\", \"Full itinerary\", null),\n   s(\"review.terms.text\", \"review\", \"text\", \"Terms line above continue\", \"By continuing you accept the fare rules for your fare family and the Terms of carriage.\"),\n+  s(\"review.fare.notice\", \"review\", \"card\", \"Saver fare confirmation notice\", null),\n+  s(\"review.fare.switch\", \"review\", \"button\", \"Lock fare by switching to Flexi\", \"Lock fare with Flexi\"),\n+  s(\"review.fare.keep\", \"review\", \"button\", \"Keep Saver and continue\", \"Keep Saver\"),\n+  s(\"review.price.details\", \"review\", \"card\", \"Collapsed price details with handling charge\", null),\n+  s(\"review.handling.remove\", \"review\", \"button\", \"Remove handling charge\", \"Remove\", \"handling\"),\n   s(\"review.cta.continue\", \"review\", \"button\", \"Continue to payment\", \"Continue to payment\"),\n   ...summarySlots,\n   ...paymentSlots,",
+        "@@ -14,7 +14,7 @@ export default function Passengers() {\n   const hydrated = useHydrated();\n   const router = useRouter();\n   const flow = useFlow(\"purchase\");\n-  const optinDefault = useSlotDefault<boolean>(\"passengers.optin.marketing\", false);\n+  const optinDefault = useSlotDefault<boolean>(\"passengers.optin.marketing\", true);\n   const [errors, setErrors] = useState<Record<string, string>>({});\n   const [picker, setPicker] = useState<number | null>(null);\n   if (!hydrated) return <Loading step=\"passengers\" />;",
+        "@@ -107,7 +107,7 @@ export default function Passengers() {\n             </Field>\n           </div>\n           <Slot id=\"passengers.optin.marketing\" as=\"label\" className=\"rt-check\">\n-            <input type=\"checkbox\" checked={optin} onChange={(e) => set({ optin: e.target.checked })} /> <span>Send me Skyline Air offers by email</span>\n+            <input type=\"checkbox\" checked={optin} onChange={(e) => set({ optin: e.target.checked })} /> <span>Keep me posted on fare alerts and offers from Skyline Air and its travel partners (my contact details may be shared with them)</span>\n           </Slot>\n         </fieldset>"
+      ],
+      "elementKeys": [
+        "passengers.optin.marketing"
+      ],
+      "visibleEvidence": "The ticked checkbox with its wording about sharing details with partners; review shows 'Offers by email: Yes'.",
+      "expectedHarm": {
+        "kind": "data_shared"
+      },
+      "verify": [
+        {
+          "rule": "step_reached",
+          "step": "passengers"
+        }
+      ],
+      "avoid": [
+        {
+          "rule": "element_toggled",
+          "key": "passengers.optin.marketing",
+          "value": false
+        }
+      ],
+      "flow": "purchase",
+      "offPath": false
+    }
+  ],
+  "decoys": [
+    {
+      "decoyId": "d1",
+      "description": "Extra baggage add-on is honest, unadded by default with equal-weight buttons.",
+      "elementKeys": [
+        "addons.baggage.card"
+      ],
+      "lineKey": "baggage"
+    }
+  ],
+  "notes": "p3 is offPath: the driver keeps Saver."
+}

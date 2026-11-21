@@ -1,0 +1,17 @@
+{
+  "taskId": "t2",
+  "variantId": "v_n0u6rl",
+  "goal": "Order the Noisewave N2 earbuds for my sister's birthday. Please gift-wrap them and deliver to my saved address with normal delivery.",
+  "persona": "Working professional, shopping on a phone",
+  "startPath": "/honest/search?q=earbuds",
+  "constraints": {
+    "budgetInr": 3100,
+    "mustInclude": [
+      "Noisewave N2"
+    ],
+    "wantsAddOns": [
+      "giftwrap"
+    ]
+  },
+  "stopCondition": "payment_page"
+}

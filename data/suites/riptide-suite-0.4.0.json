@@ -1,0 +1,261 @@
+{
+  "suiteId": "riptide-suite-0.4.0",
+  "createdAt": "2026-11-21T12:51:10.599Z",
+  "items": [
+    {
+      "shop": "air",
+      "variantId": "v_13p4xs",
+      "branch": "variant/air/v_13p4xs",
+      "commit": "7a0f8be28c17d2bf1b3723b8576cbcc0b1ad94d3",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "food",
+      "variantId": "v_1v41ay",
+      "branch": "variant/food/v_1v41ay",
+      "commit": "d43b7eedd9454fe7f4110784400f55bfa6437deb",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "food",
+      "variantId": "v_28wzca",
+      "branch": "variant/food/v_28wzca",
+      "commit": "4cc198aa5ba264ea464b8c67a2b93ea37f9fbf65",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "market",
+      "variantId": "v_2rb7tp",
+      "branch": "variant/market/v_2rb7tp",
+      "commit": "2c65a0c2016bdfb90a95febdff5bf626c9ed48ae",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "ott",
+      "variantId": "v_76j1xg",
+      "branch": "variant/ott/v_76j1xg",
+      "commit": "aef26b15def1cb19ee226ae74ab21d7f41cbd525",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2",
+        "t3"
+      ]
+    },
+    {
+      "shop": "market",
+      "variantId": "v_bzhsr4",
+      "branch": "variant/market/v_bzhsr4",
+      "commit": "4b165aa224f66ebc67ea24242c740f67a653e705",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "air",
+      "variantId": "v_cjlfij",
+      "branch": "variant/air/v_cjlfij",
+      "commit": "fe64c98fe594be06c55d681f11ad84701e214f8e",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "ott",
+      "variantId": "v_g0agfp",
+      "branch": "variant/ott/v_g0agfp",
+      "commit": "3826451b485a10a183d6f08f62b1fbbfd19e4e93",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2",
+        "t3"
+      ]
+    },
+    {
+      "shop": "saas",
+      "variantId": "v_hgttn6",
+      "branch": "variant/saas/v_hgttn6",
+      "commit": "10328d1db4a404f1a442871f443623b69062d3e3",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2",
+        "t3"
+      ]
+    },
+    {
+      "shop": "saas",
+      "variantId": "v_idfm8o",
+      "branch": "variant/saas/v_idfm8o",
+      "commit": "6e744d3a922eca21c21939d6532c46fd2b2e8be8",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2",
+        "t3"
+      ]
+    },
+    {
+      "shop": "food",
+      "variantId": "v_kfzvxa",
+      "branch": "variant/food/v_kfzvxa",
+      "commit": "ba7367f431dd8fa57ffb6e3597f06c5d3acbff14",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "market",
+      "variantId": "v_m3cn33",
+      "branch": "variant/market/v_m3cn33",
+      "commit": "97eb999dffae23dda00b3b13348ad15d2b583dea",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "market",
+      "variantId": "v_n0u6rl",
+      "branch": "variant/market/v_n0u6rl",
+      "commit": "2d47fe1151937a3000d830f32ab0cd0566f64fbf",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "air",
+      "variantId": "v_nuhqds",
+      "branch": "variant/air/v_nuhqds",
+      "commit": "e94192dfcadd237801803b63016ade36bcf037e3",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "saas",
+      "variantId": "v_r9o7ee",
+      "branch": "variant/saas/v_r9o7ee",
+      "commit": "b4c28a5908957e23f337d0f25c5743a1582ae77d",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2",
+        "t3"
+      ]
+    },
+    {
+      "shop": "air",
+      "variantId": "v_wshgwj",
+      "branch": "variant/air/v_wshgwj",
+      "commit": "0a34f46fc3999ef1e9d3f8ede17d259db062297a",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "ott",
+      "variantId": "v_wzpixz",
+      "branch": "variant/ott/v_wzpixz",
+      "commit": "83c303a5e4dd1269e851bdb09ce9410e04b7ac66",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2",
+        "t3"
+      ]
+    },
+    {
+      "shop": "food",
+      "variantId": "v_yq3lht",
+      "branch": "variant/food/v_yq3lht",
+      "commit": "4b3eca9acca6a5f46b90c83d70d4e16befe71e8c",
+      "tricksterVersion": "v2",
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "shop": "air",
+      "variantId": "control-air",
+      "branch": "main",
+      "commit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+      "tricksterVersion": null,
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "food",
+      "variantId": "control-food",
+      "branch": "main",
+      "commit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+      "tricksterVersion": null,
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "market",
+      "variantId": "control-market",
+      "branch": "main",
+      "commit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+      "tricksterVersion": null,
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "ott",
+      "variantId": "control-ott",
+      "branch": "main",
+      "commit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+      "tricksterVersion": null,
+      "taskIds": [
+        "t1"
+      ]
+    },
+    {
+      "shop": "saas",
+      "variantId": "control-saas",
+      "branch": "main",
+      "commit": "5a9149e00d1da220776b52819b3bb3a59e36b673",
+      "tricksterVersion": null,
+      "taskIds": [
+        "t1",
+        "t2"
+      ]
+    }
+  ]
+}
