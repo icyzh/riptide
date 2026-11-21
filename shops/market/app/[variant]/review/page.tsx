@@ -16,7 +16,7 @@ export default function Review() {
   const { state, set } = useCart();
   const [express] = useLineToggle("express");
   const [nextday] = useLineToggle("nextday");
-  const optinDefault = useSlotDefault<boolean>("review.optin.marketing", false);
+  const optinDefault = useSlotDefault<boolean>("review.optin.marketing", true);
   const optin = state.optin ?? optinDefault;
 
   if (!hydrated) return <main data-riptide-step="review" className="cw-wrap pt-6" aria-busy><Skeleton className="h-6 w-80" /><div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]"><Skeleton className="h-96" /><Skeleton className="h-72" /></div></main>;
@@ -81,7 +81,7 @@ export default function Review() {
           <PriceSummary step="review" state={state} title="Order summary">
             <Slot id="review.optin.marketing" as="label" className="rt-check mt-5 text-sm">
               <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
-              <span>Send me offers and updates by email</span>
+              <span>Share my order details and email with partner brands for personalised offers</span>
             </Slot>
             <Slot id="review.terms.text" as="p" className="mt-3 text-xs text-muted">By continuing you agree to Cartwheel&apos;s Terms of Use and Returns Policy.</Slot>
             <Slot id="review.cta.pay" as={Link} href={flow.next("review")} className="rt-btn mt-4 w-full" variant="primary">Continue to payment</Slot>
