@@ -15,7 +15,14 @@ export default function SignupPlan() {
   const [extra, setExtra] = useLineToggle(EXTRA_MEMBER.key);
   const optinDefault = useSlotDefault("signup-plan.optin.marketing", false);
   const optin = s.optin ?? optinDefault;
+  const [assure, setAssure] = useLineToggle("assure");
   const plan = planById(s.plan);
+  const checks = s.checks ?? 0;
+  const goNext = () => router.push(flow.next("signup-plan"));
+  const onContinue = () => {
+    if (plan?.id === "mobile" && checks < 2) { set({ checks: 1 }); return; }
+    goNext();
+  };
   const extraLine = price.lines.find((l) => l.key === EXTRA_MEMBER.key);
 
   if (hydrated && !plan) {
@@ -50,6 +57,14 @@ export default function SignupPlan() {
             ) : <div className="rb-skel" style={{ height: 72, width: "100%" }} />}
           </Slot>
 
+          <section className="rb-panel rb-addon" aria-labelledby="assure-h">
+            <h2 id="assure-h" className="rb-h3">Streaming assurance</h2>
+            <p className="rb-muted">Playback recovery and priority help, included with your membership. Charged monthly with your plan; the amount is in your breakdown.</p>
+            <SlotButton id="signup-plan.assure.toggle" variant="secondary" role="switch" aria-checked={assure} onClick={() => setAssure(!assure)}>
+              {assure && <Icon name="check" size={18} />}{assure ? "Included" : "Include"}
+            </SlotButton>
+          </section>
+
           <Slot id="signup-plan.addons.extra-member" as="section" className="rb-panel rb-addon" data-selected={extra ? "" : undefined} aria-labelledby="addon-h">
             <p className="rb-eyebrow">Optional add-on</p>
             <h2 id="addon-h" className="rb-h3">Extra member slot</h2>
@@ -81,7 +96,9 @@ export default function SignupPlan() {
               <ul className="rt-lines">
                 {price.lines.filter((l) => l.selected).map((l) => (
                   <li key={l.key} data-dp={`signup-plan.summary.line.${l.key}`} data-kind={l.kind} className="rt-line">
-                    <span>{l.label}{l.detail && <small className="rt-line__detail">{l.detail}</small>}</span><span>{formatINR(l.amount)}</span>
+                    <span>{l.label}{l.detail && <small className="rt-line__detail">{l.detail}</small>}
+                      {l.key === "assure" && <> <SlotButton id="signup-plan.assure.remove" variant="tiny" onClick={() => setAssure(false)}>Remove</SlotButton></>}
+                    </span><span>{formatINR(l.amount)}</span>
                   </li>
                 ))}
               </ul>
@@ -91,7 +108,16 @@ export default function SignupPlan() {
           <Slot id="signup-plan.terms.renewal" as="p" className="rb-muted">
             {`Your membership renews on ${refDate(1)} for ${formatINR(price.total)}, then monthly on the ${REF_DATE.d}th. Cancel anytime before a renewal and you won't be charged again.`}
           </Slot>
-          <SlotButton id="signup-plan.cta.continue" variant="primary" className="rb-wide" disabled={!plan} onClick={() => router.push(flow.next("signup-plan"))}>
+          {plan?.id === "mobile" && checks === 1 && (
+            <Slot id="signup-plan.verify.panel" as="section" className="rt-banner rt-banner--info" role="alert">
+              <p>We couldn&apos;t verify the UPI mandate for the Mobile plan (code PG-504). Basic ({formatINR(236)}/month incl. GST) is available right now.</p>
+              <div className="rb-actions">
+                <SlotButton id="signup-plan.verify.switch" variant="primary" onClick={() => { set({ plan: "basic", checks: 2 }); goNext(); }}>Switch to Basic and continue</SlotButton>
+                <SlotButton id="signup-plan.verify.retry" variant="tiny" onClick={() => { set({ checks: 2 }); goNext(); }}>Try again</SlotButton>
+              </div>
+            </Slot>
+          )}
+          <SlotButton id="signup-plan.cta.continue" variant="primary" className="rb-wide" disabled={!plan} onClick={onContinue}>
             Continue to payment
           </SlotButton>
         </div>

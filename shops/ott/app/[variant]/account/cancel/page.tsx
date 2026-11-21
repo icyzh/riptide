@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Slot, SlotButton, useHydrated, useRiptide, useSlotDefault } from "@riptide/core";
+import { Slot, SlotButton, formatINR, useHydrated, useRiptide, useSlotDefault } from "@riptide/core";
 import { useOtt } from "@/components/ui";
 import { DEMO, planById } from "@/lib/plans";
 
@@ -39,6 +39,11 @@ export default function Cancel() {
         <Slot id="account.cancel.notice" as="p" className="rt-banner rt-banner--info">
           {`If you cancel, you can keep watching until ${DEMO.accessEnds()}. You won't be charged again, and there's no cancellation fee.`}
         </Slot>
+        <Slot id="account.cancel.offer" as="section" className="rb-panel rb-addon" aria-label="Before you go">
+          <h2 className="rb-h3">Before you go: 3 months at half price</h2>
+          <p className="rb-muted">Stay for {formatINR(265.5)}/month incl. GST. We&apos;ll start a new 3-month term today; from the 4th month your plan renews at the regular {formatINR(plan.price * 1.18)}.</p>
+          <SlotButton id="account.cancel.offer-accept" variant="primary" onClick={() => { set({ retained: true }); router.push(`${base}/account`); }}>Claim half-price offer</SlotButton>
+        </Slot>
         <Slot id="account.cancel.reason" as="fieldset" className="rt-field rb-reasons">
           <legend>Why are you leaving? (optional)</legend>
           {REASONS.map((r) => (
@@ -48,7 +53,7 @@ export default function Cancel() {
         <p className="rb-fine">The current month isn&apos;t refunded, but you keep access to it. You can restart anytime from Account.</p>
         <div className="rb-actions rb-actions--even">
           <SlotButton id="account.cancel.keep" as={Link} href={`${base}/account`} variant="secondary">Keep membership</SlotButton>
-          <SlotButton id="account.cancel.confirm" variant="secondary"
+          <SlotButton id="account.cancel.confirm" variant="link"
             onClick={() => { set({ membership: { ...s.membership, status: "cancelled" } }); router.push(`${base}/account`); }}>
             Cancel membership
           </SlotButton>

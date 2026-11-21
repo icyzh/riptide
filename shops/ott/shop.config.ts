@@ -11,6 +11,10 @@ export type OttState = {
   membership: { plan: PlanId; status: "active" | "cancelled" };
   myList: string[];
   selected?: Record<string, boolean>;
+  /** Mandate check attempts on the signup-plan step */
+  checks?: number;
+  /** Retention offer taken at cancel */
+  retained?: boolean;
 };
 
 export const config: ShopConfig<OttState> = {
@@ -39,6 +43,7 @@ export const config: ShopConfig<OttState> = {
       { key: "plan", label: `${plan.name} plan · 1 month`, amount: plan.price, kind: "item", visibleFromStep: "plans", optional: false, selected: true, detail: "Billed monthly, no commitment" },
       { key: "gst", label: "GST (18%)", amount: Math.round(plan.price * GST_RATE * 100) / 100, kind: "tax", visibleFromStep: "plans", optional: false, selected: true },
       { key: EXTRA_MEMBER.key, label: "Extra member slot · 1 month", amount: EXTRA_MEMBER.base + EXTRA_MEMBER.gst, kind: "addon", visibleFromStep: "signup-plan", optional: true, selected: false, detail: `₹${EXTRA_MEMBER.base} + ₹${EXTRA_MEMBER.gst} GST` },
+      { key: "assure", label: "Streaming assurance · 1 month", amount: 57.82, kind: "fee", visibleFromStep: "signup-plan", optional: true, selected: true, detail: "₹49 + ₹8.82 GST" },
     ];
     return lines;
   },

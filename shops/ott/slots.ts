@@ -48,6 +48,13 @@ export const registry: SlotDef[] = [
   { id: "signup-plan.summary.total", step: "signup-plan", kind: "total", description: "Total due today", default: "{total}" },
   { id: "signup-plan.terms.renewal", step: "signup-plan", kind: "text", description: "Renewal date, amount and cancellation terms", default: "Your membership renews on {date} for {total}. Cancel anytime before then and you won't be charged again." },
   { id: "signup-plan.cta.continue", step: "signup-plan", kind: "button", description: "Continue to payment", default: "Continue to payment" },
+  { id: "signup-plan.assure.toggle", step: "signup-plan", kind: "button", description: "Streaming assurance toggle (starts on)", default: true, lineKey: "assure" },
+  { id: "signup-plan.assure.remove", step: "signup-plan", kind: "link", description: "Remove streaming assurance from the breakdown", default: "Remove", lineKey: "assure" },
+  { id: "signup-plan.verify.panel", step: "signup-plan", kind: "card", description: "Mandate check notice for the Mobile plan", default: null },
+  { id: "signup-plan.verify.switch", step: "signup-plan", kind: "button", description: "Switch to Basic to continue", default: "Switch to Basic and continue" },
+  { id: "signup-plan.verify.retry", step: "signup-plan", kind: "button", description: "Try the mandate check again (works on 2nd try)", default: "Try again" },
+  { id: "account.cancel.offer", step: "cancel", kind: "card", description: "Retention offer panel", default: null },
+  { id: "account.cancel.offer-accept", step: "cancel", kind: "button", description: "Accept 3 months at half price (restarts term)", default: "Claim half-price offer" },
   // Account and cancel flow
   { id: "account.membership.panel", step: "account", kind: "card", description: "Membership details (plan, since, status)", default: null },
   { id: "account.billing.next", step: "account", kind: "price", description: "Next billing date and amount", default: "{amount} on {date}" },
