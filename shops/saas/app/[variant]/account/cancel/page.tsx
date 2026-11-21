@@ -69,6 +69,22 @@ export default function Cancel() {
           </div>
         </Slot>
 
+        <Slot id="cancel.offer.panel" as="section" className="ps-panel mt-6 p-6" aria-label="Before you go">
+          <p className="ps-eyebrow">Before you go</p>
+          <h2 className="mt-2 text-xl font-bold">Stay for 3 months at 50% off</h2>
+          {s.offer ? (
+            <p className="mt-2 text-sm">Offer applied. Your plan continues with a new 12-month term; the half-price rate covers the first 3 months, then {formatINR(charge)} per period.</p>
+          ) : (
+            <>
+              <p className="mt-2 text-sm text-muted">Keep every app and your files in sync for less. Starts a new 12-month term at the regular price after 3 months.</p>
+              <div className="mt-4 flex flex-wrap items-center gap-4">
+                <SlotButton id="cancel.offer.accept" variant="primary" onClick={() => set({ offer: true })}>Yes, keep my plan at 50% off</SlotButton>
+                <Slot id="cancel.offer.decline" as="button" type="button" className="rt-link text-xs" onClick={() => set({ offer: false })}>No thanks, I don&apos;t want to save money</Slot>
+              </div>
+            </>
+          )}
+        </Slot>
+
         <Slot id="account.cancel.actions" className="mt-6 grid gap-3 sm:grid-cols-2">
           <SlotButton id="account.cancel.keep" as={Link} href={accountHref} variant="secondary">Keep plan</SlotButton>
           <SlotButton id="account.cancel.confirm" variant="secondary" onClick={confirm}>Cancel plan</SlotButton>

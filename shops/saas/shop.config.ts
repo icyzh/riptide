@@ -15,6 +15,10 @@ export type SaasState = {
   seats?: number;
   mode?: Mode;
   optin?: boolean;
+  partner?: boolean;
+  vtry?: number;
+  verified?: boolean;
+  offer?: boolean;
   /** The demo account's existing subscription (seeded active so the cancel flow works without buying). */
   sub: Subscription;
 };
@@ -61,6 +65,11 @@ export const config: ShopConfig<SaasState> = {
         detail: `First charge ${formatINR(round2(amount + gst))} on ${fmtDate(firstChargeDate("trial"))}`,
       });
     } else {
+      lines.push({
+        key: "care", kind: "addon", label: "Plan continuity & priority support", amount: round2(149 + gstOf(149)),
+        visibleFromStep: "review", optional: true, selected: true,
+        detail: "₹149/mo + GST, billed with your plan",
+      });
       const st = STORAGE_PRICE * (isPrepaid(s.term) ? 12 : 1);
       lines.push({
         key: "storage", kind: "addon", label: "Stock assets & +1 TB cloud storage", amount: round2(st + gstOf(st)),

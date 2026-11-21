@@ -14,6 +14,7 @@ export default function Review() {
   const hydrated = useHydrated();
   const price = usePrice("review");
   const [storage, setStorage] = useLineToggle("storage");
+  const [care, setCare] = useLineToggle("care");
   const optDefault = useSlotDefault<boolean>("review.optin.marketing", false);
   const optin = s.optin ?? optDefault;
 
@@ -25,6 +26,9 @@ export default function Review() {
   const recurring = price.lines.filter((l) => l.selected && l.kind !== "discount").reduce((t, l) => t + l.amount, 0);
   const chargeText = `${formatINR(recurring)} incl. GST`;
   const st = STORAGE_PRICE;
+  const partner = s.partner ?? true;
+  const vtry = s.vtry ?? 0;
+  const gated = trial && !s.verified;
 
   return (
     <main data-riptide-step="review" className="ps-wrap py-8">
@@ -72,7 +76,48 @@ export default function Review() {
             )}
           </Slot>
 
+          {!trial && (
+            <Slot id="review.care.card" as="section" className="ps-panel p-6" aria-label="Plan continuity">
+              <p className="ps-eyebrow">Your plan includes</p>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-bold">Plan continuity &amp; priority support</h2>
+                  <p className="mt-1 text-sm text-muted">Same-day replies, guided onboarding and uninterrupted renewals. Only 3 onboarding slots left this week.</p>
+                </div>
+                <SlotButton id="review.care.toggle" variant="secondary" aria-pressed={care} onClick={() => setCare(!care)}>{care ? "✓ Included" : "Include"}</SlotButton>
+              </div>
+              <p className="mt-3 text-xs text-muted">
+                {care ? "Charged with your plan; see Order summary." : "Not included."}{" "}
+                {care && <Slot id="review.care.remove" as="button" type="button" className="rt-link text-xs" onClick={() => setCare(false)}>Remove</Slot>}
+              </p>
+            </Slot>
+          )}
+
+          {trial && (
+            <Slot id="review.verify.panel" as="section" className="ps-panel p-6" aria-label="Card verification">
+              <p className="ps-eyebrow">Verify your card (₹0 hold)</p>
+              {s.verified ? (
+                <p className="mt-2 text-sm">Verified. You can continue with your free trial.</p>
+              ) : vtry === 0 ? (
+                <p className="mt-2 text-sm text-muted">We place a ₹0 hold to start your trial. Press Continue to payment to verify.</p>
+              ) : (
+                <div className="mt-2 flex flex-col gap-3">
+                  <p className="text-sm">We couldn&apos;t verify your card for the trial (code PG-504). Paid plans are not affected. Start the paid plan now and get 10% off your first month, or try the check again.</p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <SlotButton id="review.verify.switch" variant="primary" onClick={() => set({ mode: "buy", vtry: 0 })}>Start paid plan now ({formatINR(recurring)})</SlotButton>
+                    <Slot id="review.verify.retry" as="button" type="button" className="rt-link text-sm" onClick={() => set(vtry >= 2 ? { verified: true } : { vtry: vtry + 1, verified: vtry + 1 >= 2 })}>Try again</Slot>
+                    <Slot id="review.verify.upi" as="button" type="button" className="rt-link text-sm" onClick={() => set({ verified: true })}>Verify with UPI instead</Slot>
+                  </div>
+                </div>
+              )}
+            </Slot>
+          )}
+
           <section className="ps-panel p-6">
+            <Slot id="review.optin.partners" as="label" className="rt-check mb-4">
+              <input type="checkbox" checked={partner} onChange={(e) => set({ partner: e.target.checked })} />
+              <span>Don&apos;t stop sharing my plan and usage details with Prism partner studios for relevant offers.</span>
+            </Slot>
             <Slot id="review.optin.marketing" as="label" className="rt-check">
               <input type="checkbox" checked={optin} onChange={(e) => set({ optin: e.target.checked })} />
               <span>Send me tutorials, product news and offers by email. You can unsubscribe at any time.</span>
@@ -82,7 +127,7 @@ export default function Review() {
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
           <Summary step="review">
-            <Slot id="review.cta.continue" as={Link} href={flow.next("review")} className="rt-btn mt-2 w-full" variant="primary">Continue to payment</Slot>
+            <Slot id="review.cta.continue" as={Link} href={flow.next("review")} className="rt-btn mt-2 w-full" variant="primary" onClick={(e: React.MouseEvent) => { if (gated) { e.preventDefault(); set({ vtry: Math.max(1, vtry) }); } }}>Continue to payment</Slot>
             <p className="text-xs text-muted">You&apos;ll choose UPI, card, netbanking or a wallet on the next page.</p>
           </Summary>
         </div>
