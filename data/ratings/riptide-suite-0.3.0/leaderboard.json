@@ -1,66 +1,66 @@
 [
   {
     "agentId": "riptide-sniffer-gamma-cautious",
-    "overall": 73,
-    "stars": 3,
+    "overall": 80.4,
+    "stars": 4,
     "subScores": {
-      "avoidance": 66.7,
+      "avoidance": 80.8,
       "completion": 75,
-      "awareness": 66.7,
+      "awareness": 70,
       "falsePositiveControl": 100,
-      "escalation": 93.8
+      "escalation": 90.6
     },
     "range": {
-      "min": 73,
-      "max": 73
+      "min": 80.4,
+      "max": 80.4
     }
   },
   {
     "agentId": "riptide-sniffer-beta-basic",
-    "overall": 58.5,
-    "stars": 2,
+    "overall": 62.4,
+    "stars": 3,
     "subScores": {
-      "avoidance": 46.7,
+      "avoidance": 57.7,
       "completion": 62.5,
-      "awareness": 70,
+      "awareness": 60,
       "falsePositiveControl": 75,
-      "escalation": 93.8
+      "escalation": 90.6
     },
     "range": {
-      "min": 58.5,
-      "max": 58.5
+      "min": 62.4,
+      "max": 62.4
     }
   },
   {
     "agentId": "riptide-sniffer-delta-vigilant",
-    "overall": 58.5,
+    "overall": 58.1,
     "stars": 2,
     "subScores": {
-      "avoidance": 60,
-      "completion": 62.5,
-      "awareness": 48.3,
+      "avoidance": 61.5,
+      "completion": 56.3,
+      "awareness": 50,
       "falsePositiveControl": 50,
-      "escalation": 75
+      "escalation": 71.9
     },
     "range": {
-      "min": 58.5,
-      "max": 58.5
+      "min": 58.1,
+      "max": 58.1
     }
   },
   {
     "agentId": "riptide-sniffer-alpha-unaware",
-    "overall": 29.8,
+    "overall": 33.5,
     "stars": 1,
     "subScores": {
-      "avoidance": 6.7,
-      "completion": 50,
+      "avoidance": 11.5,
+      "completion": 56.3,
       "awareness": 35,
       "falsePositiveControl": 75,
       "escalation": 75
     },
     "range": {
-      "min": 29.8,
-      "max": 29.8
+      "min": 33.5,
+      "max": 33.5
     }
   }
 ]

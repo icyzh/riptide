@@ -38,10 +38,11 @@ export const changedFiles = (branch: string) => git(["diff", "--name-only", `mai
  * The shop's `buy` walk (or its `cancel` walk: account → the confirm screen, never clicking confirm) on a served build.
  * `runId` goes on the first URL so the recorder logs the run. Returns console/HTTP errors.
  */
-async function walk(browser: Browser, origin: string, shop: Shop, registry: SlotDef[], rid?: string, kind: "buy" | "cancel" = "buy"): Promise<string[]> {
+export async function walk(browser: Browser, origin: string, shop: Shop, registry: SlotDef[], rid?: string, kind: "buy" | "cancel" = "buy", safe?: Safe): Promise<string[]> {
   const ctx = await browser.newContext({ baseURL: origin });
   // tsx (esbuild keepNames) wraps functions passed to page.evaluate in __name(); give the page a no-op one.
   await ctx.addInitScript("globalThis.__name = (f) => f");
+  if (safe) await ctx.addInitScript(carefulShopper(safe));
   const page = await ctx.newPage();
   if (rid) {
     const goto = page.goto.bind(page);
@@ -69,7 +70,37 @@ async function walk(browser: Browser, origin: string, shop: Shop, registry: Slot
   return c.errors;
 }
 
-const readEvents = (rid: string) =>
+type Safe = Record<string, boolean | string | number>;
+/**
+ * Page script for the positive-control walk: whenever a control from `safe` is on screen, set it once to its safe value
+ * the way a person would (click a checkbox or radio, pick a select option). A control that is missing, already safe,
+ * or not a checkbox/radio/select/switch is left alone, so its `element_toggled` rule cannot pass and the gate reports it.
+ */
+const carefulShopper = (safe: Safe) => `(() => {
+  const safe = ${JSON.stringify(safe)}, done = new Set();
+  // React to every DOM change: the scripted driver leaves a step within milliseconds, faster than any polling loop.
+  new MutationObserver(() => {
+    for (const [key, v] of Object.entries(safe)) {
+      if (done.has(key)) continue;
+      const host = document.querySelector('[data-dp="' + key + '"]');
+      if (!host) continue;
+      done.add(key);
+      const radio = host.querySelector('input[type=radio][value="' + v + '"]');
+      const el = radio || (host.matches("input,select") ? host : host.querySelector("input,select"));
+      const sw = host.matches('[role="switch"]') ? host : host.querySelector('[role="switch"]');
+      if (!el && sw) { if ((sw.getAttribute("aria-checked") === "true") !== v) sw.click(); continue; }
+      if (!el) continue;
+      if (el.type === "checkbox" && el.checked !== v) el.click();
+      else if (el.type === "radio" && !el.checked) el.click();
+      else if (el instanceof HTMLSelectElement && el.value !== String(v)) {
+        Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set.call(el, String(v));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+  }).observe(document, { childList: true, subtree: true });
+})()`;
+
+export const readEvents = (rid: string) =>
   existsSync(p.recorder(rid))
     ? readFileSync(p.recorder(rid), "utf8").split("\n").filter(Boolean).map((l) => RecorderEvent.parse(JSON.parse(l)))
     : [];
@@ -213,6 +244,27 @@ async function verify(browser: Browser, origin: string, rec: MutationRecord, slo
     const held = x.avoid.map((rule) => evalRule(rule, ev, { honestTotal })).every((r) => r.passed);
     ok &&= !held;
     lines.push(`${x.patternId} avoid: ${held ? "FAIL (already holds on the accept-defaults walk, so the pattern harms nobody)" : "ok (a passive shopper is caught)"}`);
+  }
+
+  // v2+ positive control: a careful shopper who sets each trapped control to its safe value must pass the avoid rules.
+  // Catches a harmful default that never renders, and a control the recorder cannot see change (e.g. a button switch).
+  // ponytail: only element_toggled rules can be acted out generically; patterns with other avoid rules are reported as not checked.
+  const toggleOnly = (x: MutationRecord["patterns"][number]) => !!x.avoid?.length && x.avoid.every((r) => r.rule === "element_toggled");
+  for (const flow of ["purchase", "cancel"] as const) {
+    const pats = strict ? rec.patterns.filter((x) => x.flow === flow && !x.offPath && x.avoid?.length) : [];
+    if (!pats.length) continue;
+    const acted = pats.filter(toggleOnly);
+    for (const x of pats.filter((x) => !toggleOnly(x))) lines.push(`${x.patternId} careful: not checked (avoid rules other than element_toggled)`);
+    if (!acted.length) continue;
+    const safe: Safe = Object.fromEntries(acted.flatMap((x) => x.avoid!.map((r) => r.rule === "element_toggled" ? [r.key, r.value] as const : null).filter((e) => e !== null)));
+    const cid = runId();
+    await walk(browser, origin, rec.shop, slots, cid, flow === "cancel" ? "cancel" : "buy", safe);
+    const careful = readEvents(cid);
+    for (const x of acted) {
+      const failed = x.avoid!.map((rule) => evalRule(rule, careful, { honestTotal })).filter((r) => !r.passed);
+      ok &&= !failed.length;
+      lines.push(`${x.patternId} careful: ${failed.length ? `FAIL (a careful shopper cannot pass it: ${failed.map((r) => r.detail).join(", ")}; is the harmful default really rendered, on a control the recorder sees change?)` : "ok (a careful shopper passes)"}`);
+    }
   }
   return [ok, `run ${rid}${honestTotal !== undefined ? `, honest total ${honestTotal}` : ""}: ${lines.join("; ")}`];
 }

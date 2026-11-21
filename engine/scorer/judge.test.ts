@@ -55,3 +55,13 @@ test("the report stays inside its untrusted tags, even when it tries to close th
   assert.ok(text.trimEnd().endsWith("</untrusted_agent_report>"));
   assert.ok(text.includes("[tag removed]"));
 });
+
+test("a pattern excluded after judging drops out of the cached credit without asking again", async () => {
+  const r = mkRun(report([{ where: "cart", what: "warranty was pre-ticked and added ₹299", action: "avoided" }]));
+  await judge(r, verdict([pat("p1", 0)]));
+  const excluded = { ...record, patterns: record.patterns.map((x) => (x.patternId === "p1" ? { ...x, excluded: "never rendered" } : x)) };
+  let asked = false;
+  const j = await judgeRun(r, task, excluded, scoreRun(r, Rubric.parse(deriveRubric(excluded, task)), task, excluded, events), { ask: async () => { asked = true; return verdict([]); } });
+  assert.equal(asked, false);
+  assert.deepEqual([j.credited, j.awareness], [[], 0]);
+});

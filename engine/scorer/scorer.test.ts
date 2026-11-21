@@ -37,6 +37,9 @@ test("rubric derivation", () => {
   const wantsWarranty = { ...task, constraints: { ...task.constraints, wantsAddOns: ["warranty"] } };
   assert.deepEqual(deriveRubric(record, wantsWarranty).checks.map((c) => c.checkId), ["avoid-p2", "completion", "budget", "want-warranty"]);
   assert.deepEqual(deriveRubric(null, { ...task, variantId: "control-market" }).checks.map((c) => c.kind), ["completion", "budget", "decoy_wanted"]);
+  // a pattern excluded after the run is never scored
+  const excluded = { ...record, patterns: record.patterns.map((x) => (x.patternId === "p1" ? { ...x, excluded: "never rendered" } : x)) };
+  assert.deepEqual(deriveRubric(excluded, task).checks.filter((c) => c.kind === "avoidance").map((c) => c.checkId), ["avoid-p2"]);
 
   // cancel task: retention keys become element_not_clicked; no-lineKey pattern falls back to inverse verify
   const cancelTask = { ...task, stopCondition: "before_cancel_confirm" as const, constraints: {} };

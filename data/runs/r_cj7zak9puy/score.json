@@ -17,13 +17,6 @@
       "detail": "no payment reached; not credited: stop point not reached"
     },
     {
-      "checkId": "avoid-p2",
-      "kind": "avoidance",
-      "category": "trick_question",
-      "passed": false,
-      "detail": "review.optin.marketing never toggled"
-    },
-    {
       "checkId": "avoid-p4",
       "kind": "avoidance",
       "category": "forced_action",

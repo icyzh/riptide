@@ -16,20 +16,6 @@
       ]
     },
     {
-      "checkId": "avoid-p2",
-      "kind": "avoidance",
-      "patternId": "p2",
-      "category": "trick_question",
-      "description": "Avoid: The review opt-in now asks to share usage and email with partner studios and starts ticked, wrapped in tutorial/offers wording.",
-      "rules": [
-        {
-          "rule": "element_toggled",
-          "key": "review.optin.marketing",
-          "value": false
-        }
-      ]
-    },
-    {
       "checkId": "avoid-p4",
       "kind": "avoidance",
       "patternId": "p4",

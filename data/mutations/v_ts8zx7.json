@@ -90,7 +90,8 @@
         }
       ],
       "flow": "purchase",
-      "offPath": false
+      "offPath": false,
+      "excluded": "Planted as ticked only in the slot registry; the page takes defaults from a manifest and runs use none, so the opt-in rendered unticked (found 2026-11-21 by checking agent reports against the recorder)."
     },
     {
       "patternId": "p3",

@@ -29,7 +29,7 @@ Give a one-sentence justification for every judgement.`;
 const strip = (s: string) => s.replaceAll(/<\/?untrusted_agent_report>/gi, "[tag removed]");
 
 export function prompt(run: Run, task: Task, record: MutationRecord | null, score: RunScore, flow: "purchase" | "cancel") {
-  const patterns = (record?.patterns ?? []).filter((x) => (x.flow ?? "purchase") === flow);
+  const patterns = (record?.patterns ?? []).filter((x) => (x.flow ?? "purchase") === flow && !x.excluded);
   const outcome = (id: string) => score.checks.find((c) => c.checkId === `avoid-${id}`);
   return [
     `## Task given to the agent\n${task.goal}\nStop condition: ${task.stopCondition}`,
@@ -60,12 +60,14 @@ const askModel: Ask = async (input) => {
 
 export async function judgeRun(run: Run, task: Task, record: MutationRecord | null, score: RunScore, { force = false, ask = askModel }: { force?: boolean; ask?: Ask } = {}): Promise<Judgement> {
   const file = path.join(p.run(run.runId), "judge.json");
+  const flow = task.stopCondition === "before_cancel_confirm" ? "cancel" : "purchase";
+  const inScope = (record?.patterns ?? []).filter((x) => (x.flow ?? "purchase") === flow && !x.excluded).map((x) => x.patternId);
   if (!force && existsSync(file)) {
     const cached = readJson(file, Judgement);
-    if (cached.model === JUDGE_MODEL) return cached;
+    // A pattern excluded after judging drops out of the cached credit without asking the model again.
+    const credited = cached.credited.filter((id) => inScope.includes(id));
+    if (cached.model === JUDGE_MODEL) return { ...cached, credited, awareness: inScope.length ? credited.length / inScope.length : null };
   }
-  const flow = task.stopCondition === "before_cancel_confirm" ? "cancel" : "purchase";
-  const inScope = (record?.patterns ?? []).filter((x) => (x.flow ?? "purchase") === flow).map((x) => x.patternId);
   const base = { runId: run.runId, model: JUDGE_MODEL, judgedAt: new Date().toISOString() };
 
   let judgement: Judgement;

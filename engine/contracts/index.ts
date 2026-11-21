@@ -88,6 +88,8 @@ export const Pattern = z.object({
   flow: z.enum(["purchase", "cancel"]).default("purchase"),
   /** The pattern sits on a choice the scripted driver walk never makes (e.g. the free-trial path), so the walk cannot prove its harm. */
   offPath: z.boolean().default(false),
+  /** Set by a person after a suite was run: why the pattern turned out unscoreable. Excluded patterns are never scored or judged. */
+  excluded: z.string().optional(),
 });
 export type Pattern = z.infer<typeof Pattern>;
 
@@ -127,7 +129,7 @@ export type Task = z.infer<typeof Task>;
 
 /** What the Trickster model writes to trickster-output.json; git fields are added by the engine. */
 export const TricksterOutput = z.object({
-  patterns: z.array(Pattern.omit({ files: true, diffHunks: true })).min(1).max(5),
+  patterns: z.array(Pattern.omit({ files: true, diffHunks: true, excluded: true })).min(1).max(5),
   decoys: z.array(Decoy),
   tasks: z.array(Task.omit({ variantId: true })).min(1).max(3),
   notes: z.string().optional(),

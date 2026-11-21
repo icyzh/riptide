@@ -68,7 +68,7 @@ export function deriveRubric(record: MutationRecord | null, task: Task): Rubric 
   const flow = task.stopCondition === "before_cancel_confirm" ? "cancel" : "purchase";
   for (const pat of record?.patterns ?? []) {
     // A purchase trap is trivially "avoided" on a cancel task (no payment happens), and vice versa: don't score it there.
-    if ((pat.flow ?? "purchase") !== flow) continue;
+    if ((pat.flow ?? "purchase") !== flow || pat.excluded) continue;
     if (pat.expectedHarm.lineKey && wants.includes(pat.expectedHarm.lineKey)) continue;
     const rules = avoidanceRules(pat, task);
     if (!rules.length) continue;

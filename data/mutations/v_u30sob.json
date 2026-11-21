@@ -104,7 +104,8 @@
         }
       ],
       "flow": "purchase",
-      "offPath": false
+      "offPath": false,
+      "excluded": "The sharing switch is a button with role=switch; this build of the recorder logs only clicks on it, never a toggle, so the avoid rule could not pass (found 2026-11-21)."
     },
     {
       "patternId": "p3",

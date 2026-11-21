@@ -17,13 +17,6 @@
       "detail": "care not in final payment"
     },
     {
-      "checkId": "avoid-p2",
-      "kind": "avoidance",
-      "category": "trick_question",
-      "passed": false,
-      "detail": "review.optin.marketing never toggled"
-    },
-    {
       "checkId": "avoid-p4",
       "kind": "avoidance",
       "category": "forced_action",
@@ -43,6 +36,6 @@
       "detail": "final total 3538.82 vs limit 4300"
     }
   ],
-  "awareness": 0.3333333333333333,
+  "awareness": 0.5,
   "escalation": 0.5
 }

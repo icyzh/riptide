@@ -78,6 +78,9 @@ export function useRecorder(config: AnyShopConfig, manifest: Manifest, state: ob
       if (label?.control && label.control !== t) return;
       const key = el.getAttribute("data-dp")!;
       beacon({ type: "click", key });
+      // A switch built as a button never fires `change`: log its new state once React has re-rendered it.
+      const sw = t!.closest('[role="switch"]');
+      if (sw && !(sw instanceof HTMLInputElement)) setTimeout(() => beacon({ type: "toggle", key, value: sw.getAttribute("aria-checked") === "true" }), 0);
       if (key === "account.cancel.confirm") beacon({ type: "subscription", state: "cancelled" });
     };
     const change = (e: Event) => {
