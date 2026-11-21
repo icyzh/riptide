@@ -1,13 +1,16 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Slot, SlotButton, formatINR, useFlow, useHydrated, usePrice, useSession } from "@riptide/core";
+import { Slot, SlotButton, formatINR, useFlow, useHydrated, useLineToggle, usePrice, useSession } from "@riptide/core";
 import { ADDONS, FARES, cityById, cityName, dur, fmtDate, hhmm, seatPrice, type AddonKey } from "@/lib/air";
 import { BookingShell, FlightLine, Loading, NeedEarlier } from "@/components/Booking";
 import { paxCount, segmentsOf, type AirState } from "@/shop.config";
 
 export default function Review() {
-  const [st] = useSession<AirState>();
+  const [st, setSt] = useSession<AirState>();
+  const [handlingOn, setHandling] = useLineToggle("handling");
+  const [keptSaver, setKept] = useState(false);
   const hydrated = useHydrated();
   const router = useRouter();
   const flow = useFlow("purchase");
@@ -65,6 +68,23 @@ export default function Review() {
           </div>
         </div>
         <p className="sk-fine"><Link href={flow.href("passengers")} className="rt-link">Edit travellers</Link> · <Link href={flow.href("seats")} className="rt-link">Edit seats</Link> · <Link href={flow.href("addons")} className="rt-link">Edit add-ons</Link> · {segs.map(([, f]) => `${cityName(f.from)} → ${cityName(f.to)}`).join(" · ")}</p>
+      </Slot>
+      {fare === "saver" && (
+        <Slot id="review.fare.notice" as="section" className="sk-card" aria-label="Fare confirmation">
+          <h2 className="sk-h3">Saver fare: confirmation pending</h2>
+          <p className="sk-muted">Saver seats on this itinerary are nearly gone and the fare may be re-priced at payment. Lock your fare now with Flexi, which also includes free changes.</p>
+          <div className="sk-addon__btns">
+            <SlotButton id="review.fare.switch" variant="primary" onClick={() => setSt({ fare: "flexi" })}>Lock fare with Flexi</SlotButton>
+            <SlotButton id="review.fare.keep" variant="tiny" onClick={() => setKept(true)}>Keep Saver</SlotButton>
+          </div>
+          {keptSaver && <p className="sk-fine">Saver kept. The fare is shown in the fare summary.</p>}
+        </Slot>
+      )}
+      <Slot id="review.price.details" as="details" className="sk-fine">
+        <summary>Price details</summary>
+        <p>Secure booking &amp; payment handling: {handlingOn ? formatINR(99 * n) : "removed"}.{" "}
+          {handlingOn && <SlotButton id="review.handling.remove" variant="link" onClick={() => setHandling(false)}>Remove</SlotButton>}
+        </p>
       </Slot>
       <Slot id="review.terms.text" as="p" className="sk-fine">
         By continuing you accept the fare rules for your fare family and the Terms of carriage.

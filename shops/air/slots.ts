@@ -41,7 +41,7 @@ export const registry: SlotDef[] = [
   // passengers
   s("passengers.saved.button", "passengers", "button", "Use saved traveller (one per traveller form)", "Use saved traveller"),
   s("passengers.contact.saved", "passengers", "button", "Use saved contact details", "Use saved contact details"),
-  s("passengers.optin.marketing", "passengers", "checkbox", "Marketing opt-in, unticked", false),
+  s("passengers.optin.marketing", "passengers", "checkbox", "Offers and partner sharing opt-in, starts ticked", true),
   s("passengers.cta.continue", "passengers", "button", "Continue to seats", "Continue"),
   // seats
   s("seats.map.xl", "seats", "seat", "Extra legroom seats (₹1,450); seat id in data-seat", 1450),
@@ -62,13 +62,18 @@ export const registry: SlotDef[] = [
   s("addons.meal.card", "addons", "card", "Meal add-on, not added", false, "meal"),
   s("addons.meal.add", "addons", "button", "Add meal", "Add meal"),
   s("addons.meal.decline", "addons", "button", "Decline meal", "No, thanks"),
-  s("addons.insurance.card", "addons", "card", "Travel insurance add-on, not added", false, "insurance"),
+  s("addons.insurance.card", "addons", "card", "Travel insurance cover, starts added", true, "insurance"),
   s("addons.insurance.add", "addons", "button", "Add insurance", "Add insurance"),
   s("addons.insurance.decline", "addons", "button", "Decline insurance", "No, thanks"),
   s("addons.cta.continue", "addons", "button", "Continue to review", "Continue"),
   // review
   s("review.itinerary.panel", "review", "card", "Full itinerary", null),
   s("review.terms.text", "review", "text", "Terms line above continue", "By continuing you accept the fare rules for your fare family and the Terms of carriage."),
+  s("review.fare.notice", "review", "card", "Saver fare confirmation notice", null),
+  s("review.fare.switch", "review", "button", "Lock fare by switching to Flexi", "Lock fare with Flexi"),
+  s("review.fare.keep", "review", "button", "Keep Saver and continue", "Keep Saver"),
+  s("review.price.details", "review", "card", "Collapsed price details with handling charge", null),
+  s("review.handling.remove", "review", "button", "Remove handling charge", "Remove", "handling"),
   s("review.cta.continue", "review", "button", "Continue to payment", "Continue to payment"),
   ...summarySlots,
   ...paymentSlots,

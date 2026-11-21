@@ -24,7 +24,7 @@ export default function Addons() {
     <BookingShell step="addons">
       <header className="sk-pagehead">
         <h1 className="sk-h1">Add-ons</h1>
-        <p className="sk-muted">All optional and not added unless you choose them. Your fare already includes {FARES[st.fare ?? "saver"].cabin.toLowerCase()} and {FARES[st.fare ?? "saver"].checkin.toLowerCase()}.</p>
+        <p className="sk-muted">Cover for your trip is included by default; baggage and meals are added only if you choose them. Your fare already includes {FARES[st.fare ?? "saver"].cabin.toLowerCase()} and {FARES[st.fare ?? "saver"].checkin.toLowerCase()}.</p>
       </header>
       {(st.fare ?? "saver") === "saver" && <Upgrade />}
       <Slot id="addons.list.panel" as="div" className="sk-stack">
@@ -52,7 +52,7 @@ function Addon({ k, n, flights }: { k: AddonKey; n: number; flights: number }) {
       </div>
       <div className="sk-addon__btns">
         <SlotButton id={`addons.${k}.add`} variant="secondary" aria-pressed={on} onClick={() => setOn(true)}>{ADD_TEXT[k]}</SlotButton>
-        <SlotButton id={`addons.${k}.decline`} variant="secondary" aria-pressed={!on} onClick={() => setOn(false)}>No, thanks</SlotButton>
+        <SlotButton id={`addons.${k}.decline`} variant="secondary" aria-pressed={!on} onClick={() => setOn(false)}>{k === "insurance" ? "No, I'll take the risk" : "No, thanks"}</SlotButton>
       </div>
     </Slot>
   );
