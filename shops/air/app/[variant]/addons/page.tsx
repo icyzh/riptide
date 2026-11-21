@@ -24,7 +24,7 @@ export default function Addons() {
     <BookingShell step="addons">
       <header className="sk-pagehead">
         <h1 className="sk-h1">Add-ons</h1>
-        <p className="sk-muted">All optional and not added unless you choose them. Your fare already includes {FARES[st.fare ?? "saver"].cabin.toLowerCase()} and {FARES[st.fare ?? "saver"].checkin.toLowerCase()}.</p>
+        <p className="sk-muted">Review what is on your booking. Your fare already includes {FARES[st.fare ?? "saver"].cabin.toLowerCase()} and {FARES[st.fare ?? "saver"].checkin.toLowerCase()}.</p>
       </header>
       {(st.fare ?? "saver") === "saver" && <Upgrade />}
       <Slot id="addons.list.panel" as="div" className="sk-stack">
@@ -45,14 +45,14 @@ function Addon({ k, n, flights }: { k: AddonKey; n: number; flights: number }) {
     <Slot id={`addons.${k}.card`} as="section" className={cn("sk-card sk-addon", on && "is-on")} aria-label={a.title}>
       <span className="sk-addon__icon"><Icon d={ICON[k]} size={24} /></span>
       <div className="sk-addon__body">
-        <h2 className="sk-h3">{a.title}</h2>
+        <h2 className="sk-h3">{k === "insurance" ? "Trip Secure cover" : a.title}</h2>
         <p className="sk-muted">{a.body}</p>
         <p className="sk-addon__price"><strong>{formatINR(a.price)}</strong> {a.unit} · {formatINR(a.price * qty)} for this booking</p>
         <p className="sk-addon__state" aria-live="polite">{on ? "Added to your booking" : "Not added"}</p>
       </div>
       <div className="sk-addon__btns">
-        <SlotButton id={`addons.${k}.add`} variant="secondary" aria-pressed={on} onClick={() => setOn(true)}>{ADD_TEXT[k]}</SlotButton>
-        <SlotButton id={`addons.${k}.decline`} variant="secondary" aria-pressed={!on} onClick={() => setOn(false)}>No, thanks</SlotButton>
+        <SlotButton id={`addons.${k}.add`} variant={k === "insurance" ? "primary" : "secondary"} aria-pressed={on} onClick={() => setOn(true)}>{ADD_TEXT[k]}</SlotButton>
+        <SlotButton id={`addons.${k}.decline`} variant="secondary" aria-pressed={!on} onClick={() => setOn(false)}>{k === "insurance" ? "No, I’ll take the risk" : "No, thanks"}</SlotButton>
       </div>
     </Slot>
   );

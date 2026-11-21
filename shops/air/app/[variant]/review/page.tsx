@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Slot, SlotButton, formatINR, useFlow, useHydrated, usePrice, useSession } from "@riptide/core";
+import { Slot, SlotButton, formatINR, useFlow, useHydrated, useLineToggle, usePrice, useSession } from "@riptide/core";
 import { ADDONS, FARES, cityById, cityName, dur, fmtDate, hhmm, seatPrice, type AddonKey } from "@/lib/air";
 import { BookingShell, FlightLine, Loading, NeedEarlier } from "@/components/Booking";
 import { paxCount, segmentsOf, type AirState } from "@/shop.config";
@@ -12,6 +12,8 @@ export default function Review() {
   const router = useRouter();
   const flow = useFlow("purchase");
   const price = usePrice("review");
+  const [handlingOn, setHandling] = useLineToggle("handling");
+  const handling = price.lines.find((l) => l.key === "handling");
   if (!hydrated) return <Loading step="review" />;
   const segs = segmentsOf(st);
   if (!segs.length) return <NeedEarlier step="review" what="Choose a flight first" href={flow.href("results")} />;
@@ -66,6 +68,18 @@ export default function Review() {
         </div>
         <p className="sk-fine"><Link href={flow.href("passengers")} className="rt-link">Edit travellers</Link> · <Link href={flow.href("seats")} className="rt-link">Edit seats</Link> · <Link href={flow.href("addons")} className="rt-link">Edit add-ons</Link> · {segs.map(([, f]) => `${cityName(f.from)} → ${cityName(f.to)}`).join(" · ")}</p>
       </Slot>
+      {handling && (
+        <section className="sk-card" aria-label="Price details">
+          <details>
+            <summary className="sk-muted">Price details</summary>
+            <p className="sk-fine">
+              <Slot id="review.handling.note" as="span">Secure payment handling</Slot>
+              {handlingOn ? <> {formatINR(handling.amount)} included in your total. </> : <> removed. </>}
+              {handlingOn && <SlotButton id="review.handling.remove" variant="link" onClick={() => setHandling(false)}>Remove</SlotButton>}
+            </p>
+          </details>
+        </section>
+      )}
       <Slot id="review.terms.text" as="p" className="sk-fine">
         By continuing you accept the fare rules for your fare family and the Terms of carriage.
       </Slot>

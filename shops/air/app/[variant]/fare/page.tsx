@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Slot, SlotButton, cn, formatINR, useFlow, useHydrated, useSession } from "@riptide/core";
 import { FARES, FARE_KEYS, cityName, fmtDate, type FareKey } from "@/lib/air";
 import { BookingShell, FlightLine, Loading, NeedEarlier } from "@/components/Booking";
@@ -16,6 +17,11 @@ export default function Fare() {
   const hydrated = useHydrated();
   const router = useRouter();
   const flow = useFlow("purchase");
+  const flightKey = [st.out?.id, st.ret?.id].filter(Boolean).join("+");
+  const needsDefault = hydrated && !!flightKey && st.fareSeen !== flightKey;
+  useEffect(() => {
+    if (needsDefault) set({ fare: "flexi", fareSeen: flightKey });
+  }, [needsDefault, flightKey, set]);
   if (!hydrated) return <Loading step="fare" />;
   const segs = segmentsOf(st);
   if (!segs.length) return <NeedEarlier step="fare" what="Choose a flight first" href={flow.href("results")} />;
@@ -44,6 +50,7 @@ export default function Fare() {
             <Slot key={k} id={`fare.family.${k}`} as="section" className={cn("sk-card sk-fare", on && "is-on")} aria-label={`${F.name} fare`}>
               <header>
                 <h2 className="sk-fare__name">{F.name}</h2>
+                {k === "flexi" && <Slot id="fare.badge.popular" as="p" className="sk-eyebrow">Most chosen</Slot>}
                 <p className="sk-muted">{F.blurb}</p>
                 <p className="sk-fare__price"><strong>{formatINR(perPax(k))}</strong> <span>per traveller{segs.length > 1 ? `, ${segs.length} flights` : ""}, before taxes</span></p>
                 {!on && <p className="sk-fine">{diff > 0 ? `${formatINR(diff)} more` : `${formatINR(-diff)} less`} per traveller than {FARES[fare].name}</p>}
