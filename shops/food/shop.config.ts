@@ -1,6 +1,6 @@
 import { hashString, type LineItem, type ShopConfig } from "@riptide/core";
 import { itemByIdLookup, restaurantById, type MenuItem } from "./data/restaurants";
-import { DONATION, GST_FOOD, GST_SERVICE, PASS_PRICE, PLATFORM_FEE, TIPS, couponDiscount, findCoupon, type Address } from "./data/profile";
+import { DONATION, GST_FOOD, GST_SERVICE, PLATFORM_FEE, TIPS, couponDiscount, findCoupon, type Address } from "./data/profile";
 import { registry } from "./slots";
 
 export type CartLine = { uid: string; itemId: string; size: string; addons: string[]; spice: string | null; qty: number };
@@ -16,7 +16,13 @@ export type FoodState = {
   cutlery?: boolean;
   marketing?: boolean;
   selected?: Record<string, boolean>;
+  speed?: "standard" | "priority";
+  standardChecked?: boolean;
 };
+
+export const PASS_INTRO = 9;
+export const PRIORITY_FEE = 29;
+export const DEFAULT_TIP = 30;
 
 export const SPICE_LEVELS = ["Mild", "Medium", "Spicy"] as const;
 
@@ -73,8 +79,9 @@ export const config: ShopConfig<FoodState> = {
       line("packaging", "Restaurant packaging", r.packaging, "fee"),
       line("platform", "Platform fee", PLATFORM_FEE, "fee"),
       line("gst", "GST", gst, "tax", false, "5% on food and packaging, 18% on platform fee"),
-      line("pass", "Forkful Pass · 1 month", PASS_PRICE, "membership", true),
-      ...TIPS.map((t) => line(`tip-${t}`, "Delivery partner tip", t, "tip", true)),
+      { ...line("pass", "Forkful Pass · 30-day intro", PASS_INTRO, "membership", true, "Renews at ₹99/month until cancelled"), selected: true },
+      { ...line("priority", "Priority handling", PRIORITY_FEE, "fee", true, "Rider assigned ahead of the queue"), visibleFromStep: "checkout", selected: state.speed !== "standard" },
+      ...TIPS.map((t) => ({ ...line(`tip-${t}`, "Delivery partner tip", t, "tip", true), selected: t === DEFAULT_TIP })),
       line("donation", "Donation to Annapurna Meals Trust", DONATION, "donation", true),
     );
     return lines;

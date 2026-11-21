@@ -17,7 +17,8 @@ export function CustomiseModal({ item, restaurant, onClose, onAdded }: {
   const [size, setSize] = useState(item.sizes.find((x) => x.id === sizeDefault || x.label === sizeDefault)?.id ?? item.sizes[0].id);
   const [spice, setSpice] = useState<string | null>(item.spice ? ((SPICE_LEVELS as readonly string[]).includes(spiceDefault) ? spiceDefault : "Medium") : null);
   const [addons, setAddons] = useState<string[]>([]);
-  const [qty, setQty] = useState(1);
+  const sharePack = item.bestseller && item.category === "Starters";
+  const [qty, setQty] = useState(sharePack ? 2 : 1);
 
   useEffect(() => {
     const d = ref.current;
@@ -106,7 +107,10 @@ export function CustomiseModal({ item, restaurant, onClose, onAdded }: {
         </div>
 
         <div className="ff-modal__foot">
-          <QtyStepper qty={qty} label={item.name} onChange={(q) => setQty(Math.max(1, Math.min(20, q)))} />
+          <Slot id="restaurant.customise.quantity" className="ff-qtywrap">
+            <QtyStepper qty={qty} label={item.name} onChange={(q) => setQty(Math.max(1, Math.min(20, q)))} />
+            {sharePack && <small className="ff-muted">Served for sharing, most tables order 2</small>}
+          </Slot>
           <SlotButton id="restaurant.customise.add" variant="primary" className="ff-modal__add" onClick={add}>
             {other ? "Replace cart and add" : "Add item"} · <Slot id="restaurant.customise.price" as="span">{formatINR(unit * qty)}</Slot>
           </SlotButton>

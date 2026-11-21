@@ -33,6 +33,7 @@ export default function CheckoutPage() {
   const cutleryDefault = useSlotDefault<boolean>("checkout.cutlery.toggle", false);
   const marketingDefault = useSlotDefault<boolean>("checkout.optin.marketing", false);
   const [showForm, setShowForm] = useState(false);
+  const [speedMsg, setSpeedMsg] = useState(false);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof Draft, string>>>({});
   const [addrError, setAddrError] = useState(false);
@@ -61,6 +62,12 @@ export default function CheckoutPage() {
 
   const tipOn = TIPS.find((t) => price.lines.find((l) => l.key === `tip-${t}`)?.selected) ?? 0;
   const setTip = (t: number) => set((st) => ({ selected: { ...st.selected, ...Object.fromEntries(TIPS.map((x) => [`tip-${x}`, x === t])) } }));
+  const speed = s.speed ?? "priority";
+  const pickStandard = () => {
+    if (s.standardChecked) { set({ speed: "standard" }); setSpeedMsg(false); return; }
+    set({ standardChecked: true });
+    setSpeedMsg(true);
+  };
   const cutlery = s.cutlery ?? cutleryDefault;
   const marketing = s.marketing ?? marketingDefault;
   const chooseAddress = (a: Address) => { set({ address: a, city: a.city }); setShowForm(false); setAddrError(false); };
@@ -159,11 +166,27 @@ export default function CheckoutPage() {
             </Slot>
           </section>
 
+          <section aria-labelledby="ff-speed" className="ff-card">
+            <h2 id="ff-speed" className="ff-h3">Handling</h2>
+            <Slot id="checkout.speed.selector" role="radiogroup" aria-labelledby="ff-speed" className="ff-tips">
+              <Slot id="checkout.speed.option-priority" as="button" type="button" role="radio" aria-checked={speed === "priority"} className="ff-tip" onClick={() => { set({ speed: "priority" }); setSpeedMsg(false); }}>Priority (recommended) · 25–35 min</Slot>
+              <Slot id="checkout.speed.option-standard" as="button" type="button" role="radio" aria-checked={speed === "standard"} className="ff-tip" onClick={pickStandard}>Standard · 40–50 min</Slot>
+            </Slot>
+            {speedMsg && speed !== "standard" && (
+              <p role="status" className="ff-err">
+                Standard handling is fully booked for {s.address?.pin ?? "your area"} right now. Priority is available.{" "}
+                <SlotButton id="checkout.speed.recheck" variant="link" onClick={() => { set({ speed: "standard", standardChecked: true }); setSpeedMsg(false); }}>Check again</SlotButton>
+              </p>
+            )}
+            <p className="ff-muted text-xs">Priority handling is billed as its own line in the bill details.</p>
+          </section>
+
           <section aria-labelledby="ff-tip" className="ff-card">
-            <h2 id="ff-tip" className="ff-h3">Tip your delivery partner <span className="ff-req ff-req--opt">Optional</span></h2>
-            <p className="ff-muted text-sm">100% of the tip goes to your delivery partner. You can leave it at No tip.</p>
+            <h2 id="ff-tip" className="ff-h3">Tip your delivery partner</h2>
+            <Slot id="checkout.tip.banner" className="rt-banner rt-banner--warning">Heavy rain in your area. Riders are out in it for you.</Slot>
+            <p className="ff-muted text-sm">100% of the tip goes to your delivery partner.</p>
             <Slot id="checkout.tip.selector" role="radiogroup" aria-labelledby="ff-tip" className="ff-tips">
-              <Slot id="checkout.tip.option-none" as="button" type="button" role="radio" aria-checked={tipOn === 0} className="ff-tip" onClick={() => setTip(0)}>No tip</Slot>
+              <Slot id="checkout.tip.option-none" as="button" type="button" role="radio" aria-checked={tipOn === 0} className="ff-tip" onClick={() => setTip(0)}>No, my rider can go without</Slot>
               {TIPS.map((t) => (
                 <Slot key={t} id={`checkout.tip.option-${t}`} as="button" type="button" role="radio" aria-checked={tipOn === t} className="ff-tip" onClick={() => setTip(t)}>{formatINR(t)}</Slot>
               ))}
